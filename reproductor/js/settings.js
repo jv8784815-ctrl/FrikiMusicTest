@@ -77,13 +77,15 @@ export function settings() {
       + row("Tamaño de la letra", "", rng("lySize", 70, 150, 5, " %"))
       + row("Alineación de la letra", "", seg("lyAlign", [["left", "Izquierda"], ["center", "Centro"]]))
       + row("Barrido palabra a palabra", "Solo con letras sincronizadas palabra a palabra; las de por líneas nunca barren. Si lo apagas, la línea activa se ilumina entera.", sw("sweep"))
-      + row("Difuminar líneas inactivas", "", sw("lyBlur")))
+      + row("Difuminar líneas inactivas", "", sw("lyBlur"))
+      + row("Reacción al ritmo", "La línea activa late con cada sílaba o palabra que se canta. Se desactiva con las animaciones reducidas.", sw("lyBeat"))
+      + row("Traducir letras", "Muestra la traducción bajo cada verso. Envía el texto de la letra a Google Translate; apagado por defecto.", sel("lyTr", [["off", "Desactivado"], ["es", "Español"], ["en", "English"], ["pt", "Português"], ["fr", "Français"], ["de", "Deutsch"], ["it", "Italiano"], ["ja", "日本語"], ["ko", "한국어"], ["zh-CN", "中文"]])))
     + sec("Reproducción", row("Pasar a la siguiente canción al terminar", "El volumen se recuerda siempre.", sw("autonext")) + row("Contar mis reproducciones en el Top", "Anónimo: solo la canción y tu país, sin cuenta ni datos personales.", sw("stats")))
     + sec("Idioma", row("Idioma", "Se detecta del navegador. Cambiarlo recarga la página.", `<select class="ssel" data-lang aria-label="Idioma"><option value="auto"${langPref() === "auto" ? " selected" : ""}>Automático</option>${LANGS.map(([v, n]) => `<option translate="no" value="${v}"${langPref() === v ? " selected" : ""}>${n}</option>`).join("")}</select>`));
 }
 
 export function bindSettings({ redraw, rail, toast }) {
-  const apply = k => { applyTheme(); if (k === "video") refreshVideo(); if (k === "rail") rail(); if (k === "miniAuto") setAutoMini(); if (k.startsWith("mini")) refreshMini(); };
+  const apply = k => { applyTheme(); if (k === "lyTr") document.dispatchEvent(new Event("fm:lytr")); if (k === "video") refreshVideo(); if (k === "rail") rail(); if (k === "miniAuto") setAutoMini(); if (k.startsWith("mini")) refreshMini(); };
   document.addEventListener("click", e => {
     const b = e.target.closest("button[data-set]");
     if (b) { const k = b.dataset.set; set(k, b.hasAttribute("data-toggle") ? !get(k) : parse(b.dataset.val)); apply(k); redraw(); return; }

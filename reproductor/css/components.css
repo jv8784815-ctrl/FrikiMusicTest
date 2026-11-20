@@ -216,8 +216,10 @@ h1.ht{margin:6px 0 2px}
 .gap.on i:not(.done){transform:scale(calc(1 + var(--f)*.18))}
 .gap i.done{animation:dotpop .5s cubic-bezier(.34,1.56,.64,1)}
 .gap.on i.done{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--tx) 60%,transparent))}
-.gap.out i{transform:scale(.55);opacity:0}
-.gap.out i:nth-child(2){transition-delay:.06s}.gap.out i:nth-child(3){transition-delay:.12s}
+.gap.out i,.gap.out i.done{animation:dotout .55s cubic-bezier(.5,0,.75,0) both}
+.gap.out i:nth-child(2){animation-delay:.09s}.gap.out i:nth-child(3){animation-delay:.18s}
+.gap.past i{opacity:0;transform:scale(0)}
+@keyframes dotout{0%{transform:scale(1);opacity:1;filter:blur(0)}28%{transform:scale(1.5);opacity:1;filter:blur(0)}100%{transform:scale(0);opacity:0;filter:blur(5px)}}
 @keyframes dotpop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
 @media(max-width:900px){
   .fgrid,.full[data-col=lyrics] .fgrid,.full[data-col=queue] .fgrid{grid-template-columns:minmax(0,1fr);padding:60px 18px 70px;--art:min(84vw,calc(100dvh - 330px),420px)}
@@ -420,3 +422,9 @@ body{background:var(--bg);transition:background .6s}
 .artist-intro{position:relative;left:auto;right:auto;bottom:auto;flex:1}
 @media(max-width:760px){.artist-hero{flex-direction:column;align-items:flex-start;justify-content:flex-end;min-height:480px;gap:22px}.artist-portrait{width:min(58vw,220px)}}
 @media(max-width:420px){.artist-hero{min-height:440px;padding:22px}}
+
+.ly .tr{font-size:.5em;font-weight:500;line-height:1.3;margin-top:4px;opacity:.7;letter-spacing:0}
+.ly .tr:empty{display:none}
+[data-lytr=off] .ly .tr{display:none}
+[data-lybeat=on] .ly.on{scale:calc(1 + var(--beat,0)*.028)}
+[data-motion=off] .ly.on{scale:none}

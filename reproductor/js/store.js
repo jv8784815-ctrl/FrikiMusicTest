@@ -10,7 +10,7 @@ export const DEF = {
 
   cardSize: "medium", histMax: 30, home: { recent: true, feed: true, again: true, mixes: true, likes: true, artist: true, top: true },
 
-  fdesign: "classic", fpanel: "lyrics", video: true, idle: 3, lySize: 100, lyAlign: "left", lyBlur: true, sweep: true,
+  fdesign: "classic", fpanel: "lyrics", video: true, idle: 3, lySize: 100, lyAlign: "left", lyBlur: true, sweep: true, lyBeat: true, lyTr: "off",
 
   miniDesign: "glass", miniSize: "medium", miniLyric: true, miniAuto: false,
 
@@ -74,6 +74,6 @@ export function applyTheme() {
   st.setProperty("--fs", c.fs / 100); st.setProperty("--rk", RK[c.radius] ?? 1); st.setProperty("--ck", CK[c.cardSize] ?? 1);
   st.setProperty("--ly-k", c.lySize / 100); st.setProperty("--amb-mix", (c.ambient ? c.ambInt : 0) + "%");
   Object.assign(d.dataset, { density: c.density, playshape: c.playShape, fdesign: c.fdesign, fbg: c.fbg, lyalign: c.lyAlign,
-    motion: c.motion ? "on" : "off", fanim: c.fanim ? "on" : "off", lyblur: c.lyBlur ? "on" : "off", sweep: c.sweep ? "on" : "off" });
+    motion: c.motion ? "on" : "off", fanim: c.fanim ? "on" : "off", lyblur: c.lyBlur ? "on" : "off", sweep: c.sweep ? "on" : "off", lybeat: c.lyBeat ? "on" : "off", lytr: c.lyTr && c.lyTr !== "off" ? "on" : "off" });
 }
 dark.addEventListener("change", () => S.theme === "auto" && applyTheme());

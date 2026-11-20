@@ -2,6 +2,8 @@
 
 import { au } from "./player.js";
 import { SOURCES, isGap } from "./lyrics.js";
+import { S } from "./store.js";
+import { translateLines } from "./translate.js";
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 function spans(words) {
@@ -15,7 +17,7 @@ function lineHTML(l, i, synced) {
 
   const lead = l.words.length ? spans(l.words) : `<span class="sy ln">${esc(l.text)}</span>`;
   const bg = l.background ? `<div class="bgv">${l.background.words.length ? spans(l.background.words) : `<span class="sy ln">${esc(l.background.text)}</span>`}</div>` : "";
-  return `<div class="ly${l.alignment === "end" ? " end" : ""}${synced ? "" : " plain"}" data-i="${i}" data-t="${l.timeMs}">${lead}${bg}</div>`;
+  return `<div class="ly${l.alignment === "end" ? " end" : ""}${synced ? "" : " plain"}" data-i="${i}" data-t="${l.timeMs}">${lead}${bg}<div class="tr"></div></div>`;
 }
 
 export function lyricsView({ onSeek, onPick, onRetry } = {}) {
@@ -23,7 +25,7 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
   el.className = "lv";
   el.innerHTML = `<div class="lv-scroll" tabindex="-1"></div><div class="lv-foot"><span class="lv-src-l"></span><select class="lv-src" aria-label="Fuente de las letras"><option value="">Automático</option>${SOURCES.map(s => `<option value="${s.id}" title="${esc(s.detail)}">${esc(s.label)}</option>`).join("")}</select></div>`;
   const box = el.querySelector(".lv-scroll"), label = el.querySelector(".lv-src-l"), pick = el.querySelector(".lv-src");
-  let lines = [], rows = [], synced = false, active = -2, raf = 0, manualUntil = 0, recenter = false, forced = "";
+  let lines = [], rows = [], synced = false, active = -2, raf = 0, manualUntil = 0, recenter = false, forced = "", beatKey = "", beatAt = 0, trAbort = null;
 
   pick.onchange = () => { forced = pick.value; onPick?.(forced || null); };
   const manual = () => { manualUntil = performance.now() + 3500; recenter = true; };
@@ -43,6 +45,33 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
     recenter = false;
     box.scrollTo({ top: Math.max(0, row.offsetTop - box.clientHeight * .3), behavior: "smooth" });
   }
+  function applyTr() {
+    trAbort?.abort(); trAbort = null;
+    rows.forEach(r => { const t = r.querySelector(".tr"); if (t) t.textContent = ""; });
+    const tl = S.cfg.lyTr;
+    if (!tl || tl === "off" || !lines.length) return;
+    const ctl = trAbort = new AbortController();
+    translateLines(lines.map(l => isGap(l) ? "" : l.text), tl, (i, txt) => {
+      const t = rows[i]?.querySelector(".tr");
+      if (t && txt && txt.toLowerCase() !== lines[i].text.trim().toLowerCase()) t.textContent = txt;
+    }, ctl.signal);
+  }
+  const onTr = () => applyTr();
+  document.addEventListener("fm:lytr", onTr);
+  function beat(row, idx, t) {
+    let key = String(idx), strength = 1;
+    const sys = row.querySelectorAll(".sy:not(.ln)");
+    if (sys.length) {
+      let cur = -1;
+      for (let i = 0; i < sys.length; i++) { if (+sys[i].dataset.a <= t) cur = i; else break; }
+      key += ":" + cur;
+      if (cur > 0) strength = sys[cur].parentElement === sys[cur - 1].parentElement ? .55 : .85;
+    }
+    const now = performance.now();
+    if (key !== beatKey) { beatKey = key; beatAt = now; box.dataset.bs = strength; }
+    const v = Math.exp(-(now - beatAt) / 170) * (+box.dataset.bs || 1);
+    box.style.setProperty("--beat", S.cfg.lyBeat && !au.paused ? v.toFixed(3) : "0");
+  }
   function gapFrame(row, idx, t) {
     const a = lines[idx].timeMs, b = lines[idx + 1] ? lines[idx + 1].timeMs : a + 4000;
     const p = Math.min(1, Math.max(0, (t - a) / Math.max(1, b - a)));
@@ -52,7 +81,7 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
       dots[n].style.setProperty("--f", f.toFixed(3));
       dots[n].classList.toggle("done", f >= 1);
     }
-    row.classList.toggle("out", b - t < 450);
+    row.classList.toggle("out", b - t < 700);
   }
   function frame() {
     raf = requestAnimationFrame(frame);
@@ -63,7 +92,8 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
     if (idx !== active) setActive(idx);
     else if (recenter && idx >= 0) center(rows[idx]);
     if (idx < 0) return;
-    if (rows[idx].classList.contains("gap")) { gapFrame(rows[idx], idx, t); return; }
+    if (rows[idx].classList.contains("gap")) { box.style.setProperty("--beat", "0"); gapFrame(rows[idx], idx, t); return; }
+    beat(rows[idx], idx, t);
     for (const s of rows[idx].querySelectorAll(".sy:not(.ln)")) {
       const a = +s.dataset.a, b = +s.dataset.b;
       s.style.setProperty("--k", t <= a ? 0 : t >= b ? 100 : ((t - a) / (b - a)) * 100);
@@ -87,9 +117,10 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
       rows = [...box.querySelectorAll(".ly")];
       label.textContent = `${state.label} · ${state.wordSynced ? "palabra a palabra" : state.synced ? "por líneas" : "sin sincronizar"}`;
       pick.value = forced;
+      applyTr();
     },
 
     reset() { forced = ""; pick.value = ""; },
-    destroy() { stop(); el.remove(); },
+    destroy() { stop(); trAbort?.abort(); document.removeEventListener("fm:lytr", onTr); el.remove(); },
   };
 }
