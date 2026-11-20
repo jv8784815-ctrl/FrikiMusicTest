@@ -6,7 +6,7 @@ export const DEF = {
 
   ambient: true, ambInt: 26, fbg: "mesh", fanim: true,
 
-  wave: "wavy", playShape: "squircle",
+  wave: "wavy", playShape: "morph", m3: 1,
 
   cardSize: "medium", histMax: 30, home: { recent: true, feed: true, again: true, mixes: true, likes: true, artist: true, top: true },
 
@@ -16,9 +16,10 @@ export const DEF = {
 
   autonext: true, stats: true, volume: .8,
 };
+const loadCfg = () => { const c = load("cfg", {}); if (c && typeof c === "object" && !c.m3) { c.m3 = 1; c.playShape = "morph"; } return c; };
 export const mergeCfg = c => ({ ...DEF, ...(c && typeof c === "object" ? c : {}), home: { ...DEF.home, ...(c?.home || {}) } });
 
-export const S = { likes: load("likes", []), history: load("history", []), plays: load("plays", {}), recent: [].concat(load("recent", [])).filter(x => typeof x === "string").slice(0, 8), accent: load("accent", "rose"), theme: load("theme", "dark"), rail: load("rail", true), cfg: mergeCfg(load("cfg", {})) };
+export const S = { likes: load("likes", []), history: load("history", []), plays: load("plays", {}), recent: [].concat(load("recent", [])).filter(x => typeof x === "string").slice(0, 8), accent: load("accent", "rose"), theme: load("theme", "dark"), rail: load("rail", true), cfg: mergeCfg(loadCfg()) };
 export const save = k => { try { localStorage.setItem("fm." + k, JSON.stringify(S[k])); } catch {} };
 export const isLiked = id => S.likes.some(s => s.id === id);
 export const toggleLike = s => { S.likes = isLiked(s.id) ? S.likes.filter(x => x.id !== s.id) : [s, ...S.likes]; save("likes"); };

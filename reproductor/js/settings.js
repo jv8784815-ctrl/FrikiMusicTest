@@ -50,7 +50,7 @@ export function settings() {
     + sec("Barras y botones",
       row("Menú lateral expandido", "", sw("rail"))
       + row("Barra de progreso", "", seg("wave", [["wavy", "Ondulada"], ["flat", "Recta"]]))
-      + row("Botón de reproducir", "", seg("playShape", [["squircle", "Redondeado"], ["circle", "Círculo"]])))
+      + row("Botón de reproducir", "", seg("playShape", [["morph", "Figuras"], ["squircle", "Redondeado"], ["circle", "Círculo"]])))
     + sec("Mini reproductor flotante",
       row("Diseño", "Liquid Glass es el nuevo; Clásico es el diseño anterior.", seg("miniDesign", [["glass", "Liquid Glass"], ["classic", "Clásico"], ["vinyl", "Vinilo"], ["poster", "Portada"], ["capsule", "Cápsula"]]))
       +       row("Cómo abrirlo", "Botón de la barra inferior o tecla P. Se queda encima de las demás ventanas. Necesita Chrome o Edge 116 o superior.", "")

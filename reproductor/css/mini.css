@@ -44,7 +44,7 @@
 .mp[data-design=capsule] .mt{grid-area:mt}.mp[data-design=capsule] .btns{grid-area:btns}.mp[data-design=capsule] .wavy-wrap{grid-area:wv}
 .mp[data-design=capsule] .mly,.mp[data-design=capsule] [data-like]{display:none}
 .mp[data-design=capsule] .ibtn{width:34px;height:34px}.mp[data-design=capsule] .play{width:42px;height:42px}
-.mp[data-design=capsule] .wavy-wrap canvas{height:20px}
+.mp[data-design=capsule] .wavy-wrap canvas{height:24px}
 
 .mp[data-design=vinyl] .cw{border-radius:50%;background:repeating-radial-gradient(circle at 50% 50%,#0a0a0b 0 1.5px,#18181b 1.5px 3px);box-shadow:0 14px 32px #000a,inset 0 0 0 2px #2c2c31;animation:mspin 9s linear infinite}
 .mp[data-design=vinyl].paused .cw{animation-play-state:paused}
@@ -70,3 +70,11 @@
 .mp[data-design=glass] .mc::after,.mp[data-design=capsule] .mc::after{filter:brightness(calc(1 + var(--spd,0)*.5))}
 .mp[data-design=glass] .mc,.mp[data-design=capsule] .mc{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .mp[data-design=glass] .mc.grab,.mp[data-design=capsule] .mc.grab{cursor:grabbing}
+.mp .btns .ibtn[data-act=prev],.mp .btns .ibtn[data-act=next]{width:46px;height:40px}
+.mp .btns .ibtn[data-act=prev]{border-radius:22px 9px 9px 22px}
+.mp .btns .ibtn[data-act=next]{border-radius:9px 22px 22px 9px}
+.mp .btns .ibtn[data-act=prev]:hover,.mp .btns .ibtn[data-act=next]:hover{border-radius:14px}
+.mp .btns .ibtn[data-act=prev]:active,.mp .btns .ibtn[data-act=next]:active{border-radius:8px}
+.mp[data-design=capsule] .btns .ibtn[data-act=prev],.mp[data-design=capsule] .btns .ibtn[data-act=next]{width:38px;height:34px}
+.mp[data-design=capsule] .btns .ibtn[data-act=prev]{border-radius:17px 8px 8px 17px}
+.mp[data-design=capsule] .btns .ibtn[data-act=next]{border-radius:8px 17px 17px 8px}

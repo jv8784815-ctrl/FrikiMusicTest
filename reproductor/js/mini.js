@@ -6,6 +6,7 @@ import { hq } from "./img.js";
 import { P, au, toggle, next, prev } from "./player.js";
 import { S, isLiked, toggleLike } from "./store.js";
 import { wavy } from "./wavy.js";
+import { playShapes } from "./shapes.js";
 import { lookupLyrics, isGap } from "./lyrics.js";
 import { glassFx } from "./glassfx.js";
 import { liquid } from "./liquid.js";
@@ -17,7 +18,7 @@ const dims = () => ((S.cfg.miniDesign === "capsule" ? CAPS : S.cfg.miniDesign ==
 const fmt = s => isFinite(s) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "0:00";
 export const miniSupported = () => "documentPictureInPicture" in window;
 
-let pip = null, root = null, opening = false, stopWavy = null, stopLiquid = null, mo = null, shown = "", lyr = { id: null, lines: [] };
+let pip = null, root = null, opening = false, stopWavy = null, stopShapes = null, stopLiquid = null, mo = null, shown = "", lyr = { id: null, lines: [] };
 let note = () => {}, onLike = () => {};
 export const bindMini = o => { note = o.toast ?? note; onLike = o.onLike ?? onLike; };
 
@@ -83,7 +84,7 @@ export const refreshMini = update;
 P.on(() => update());
 au.addEventListener("timeupdate", tick);
 
-function cleanup() { stopWavy?.(); stopLiquid?.(); mo?.disconnect(); stopWavy = stopLiquid = mo = pip = root = null; }
+function cleanup() { stopWavy?.(); stopShapes?.(); stopLiquid?.(); mo?.disconnect(); stopWavy = stopShapes = stopLiquid = mo = pip = root = null; }
 
 const click = e => {
   const t = e.target.closest("[data-act],[data-like]"); if (!t) return;
@@ -106,7 +107,7 @@ export async function toggleMini() {
     root.innerHTML = html();
     attachI18n(w.document);
     sync(); mo = new MutationObserver(sync); mo.observe(document.documentElement, { attributes: true });
-    stopWavy = wavy(root.querySelector("[data-wavy]"));
+    stopWavy = wavy(root.querySelector("[data-wavy]")); stopShapes = playShapes(w.document);
     stopLiquid = liquid(w, root, () => S.cfg.motion);
     root.addEventListener("click", click);
     const glow = root.querySelector(".mc");

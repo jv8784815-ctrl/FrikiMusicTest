@@ -9,6 +9,7 @@ import { P, au, playList, playAt, toggle, next, prev, updateSession } from "./pl
 import { fetchCountryChart, fetchHomeFeed, fetchArtistPage, fetchPlaylistPage, fetchAlbumPage, fetchAlbumTracks, fetchArtistAvatar } from "./yt.js";
 import { V, lists, home, search, artist, album, queue, likes, settings, topGlobal, topCountry, countryName } from "./views.js";
 import { wavy } from "./wavy.js";
+import { playShapes } from "./shapes.js";
 import { ambient, coverColor } from "./ambient.js";
 import { pic, bindCoverFallback } from "./img.js";
 import { transport, fmt, toggleFull, closeFull, updateFull, isFullOpen, openFull } from "./full.js";
@@ -209,7 +210,7 @@ document.addEventListener("keydown", e => {
 bindSettings({ redraw: drawView, rail: drawRail, toast });
 bindMini({ toast, onLike: () => { drawView(); drawBar(); } }); setAutoMini();
 bindSearch({ run: runSearch, redraw: drawView });
-applyTheme(); drawTop(); drawRail(); drawView(); drawBar();
+applyTheme(); drawTop(); drawRail(); drawView(); drawBar(); playShapes(document);
 bridge("ping").then(r => { V.ext = true; X.ok = true; X.v = r?.version || ""; if (cur() === "settings") drawView(); }).catch(() => { V.ext = false; X.ok = false; drawView(); });
 const within = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(Error("Tiempo agotado")), ms))]);
 async function loadHome() {

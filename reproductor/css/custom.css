@@ -51,3 +51,14 @@
 
 .shell{padding:max(var(--gutter),env(safe-area-inset-top)) max(var(--gutter),env(safe-area-inset-right)) max(var(--gutter),env(safe-area-inset-bottom)) max(var(--gutter),env(safe-area-inset-left))}
 .full{inset:max(var(--gutter),env(safe-area-inset-top)) max(var(--gutter),env(safe-area-inset-right)) max(var(--gutter),env(safe-area-inset-bottom)) max(var(--gutter),env(safe-area-inset-left))}
+
+[data-playshape=morph] .play{border-radius:0!important;transition:scale .3s cubic-bezier(.34,1.56,.64,1),background .2s}
+[data-playshape=morph] .play:hover{scale:1.07}
+[data-playshape=morph] .play:active{scale:.9;transform:none}
+
+.btns{gap:6px}
+.btns .ibtn[data-act=prev],.btns .ibtn[data-act=next]{width:60px;height:48px;color:var(--tx);background:color-mix(in srgb,var(--p) 16%,var(--s3));transition:border-radius .32s cubic-bezier(.34,1.56,.64,1),background .2s,scale .25s cubic-bezier(.34,1.56,.64,1)}
+.btns .ibtn[data-act=prev]{border-radius:26px 10px 10px 26px}
+.btns .ibtn[data-act=next]{border-radius:10px 26px 26px 10px}
+.btns .ibtn[data-act=prev]:hover,.btns .ibtn[data-act=next]:hover{border-radius:16px;background:color-mix(in srgb,var(--p) 26%,var(--s3))}
+.btns .ibtn[data-act=prev]:active,.btns .ibtn[data-act=next]:active{border-radius:9px;scale:.92}
