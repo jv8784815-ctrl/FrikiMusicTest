@@ -51,11 +51,18 @@ const tryUrl = (url, st, src) => new Promise(async (ok, no) => {
   }, e => done(no)(e));
 });
 async function probeUrl(u, itag) {
-  try {
-    const x = new URL(u), c = x.searchParams.get("c"), pot = x.searchParams.has("pot");
-    const r = await fetch(u, { headers: { Range: "bytes=0-1" }, credentials: "omit" });
-    console.info(`FrikiMusic [diag] itag ${itag} c=${c} pot=${pot} -> HTTP ${r.status} ${r.headers.get("content-type") || ""}`);
-  } catch (e) { console.info(`FrikiMusic [diag] itag ${itag} sin respuesta legible:`, e?.message || e); }
+  const x = new URL(u), c = x.searchParams.get("c"), pot = x.searchParams.has("pot");
+  const get = async range => {
+    try {
+      const r = await fetch(u, { headers: { Range: range }, credentials: "omit" });
+      const cr = r.headers.get("content-range") || "";
+      try { r.body?.cancel(); } catch {}
+      return `${range} -> ${r.status}${cr ? " [" + cr + "]" : ""}`;
+    } catch (e) { return `${range} -> error ${e?.message || e}`; }
+  };
+  const out = [];
+  for (const r of ["bytes=0-1", "bytes=0-", "bytes=1048576-2097151", "bytes=2097152-3145727"]) out.push(await get(r));
+  console.info(`FrikiMusic [diag] itag ${itag} c=${c} pot=${pot} || ${out.join(" || ")}`);
 }
 async function playSources(st, s) {
   trying = true;
