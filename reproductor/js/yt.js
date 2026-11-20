@@ -481,7 +481,7 @@ function videoOffer(info, yt) {
 
     async pick(quality) {
       const h = quality === "auto" ? auto : byHeight.has(quality) ? quality : heights.find(x => x <= quality) ?? heights.at(-1), f = byHeight.get(h);
-      return { height: h, mime: f.mime_type, url: await f.decipher(yt.session.player) };
+      return { height: h, mime: f.mime_type, fmt: f, url: await f.decipher(yt.session.player) };
     },
   };
 }
