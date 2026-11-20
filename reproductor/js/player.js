@@ -50,6 +50,13 @@ const tryUrl = (url, st, src) => new Promise(async (ok, no) => {
     done(ok)();
   }, e => done(no)(e));
 });
+async function probeUrl(u, itag) {
+  try {
+    const x = new URL(u), c = x.searchParams.get("c"), pot = x.searchParams.has("pot");
+    const r = await fetch(u, { headers: { Range: "bytes=0-1" }, credentials: "omit" });
+    console.info(`FrikiMusic [diag] itag ${itag} c=${c} pot=${pot} -> HTTP ${r.status} ${r.headers.get("content-type") || ""}`);
+  } catch (e) { console.info(`FrikiMusic [diag] itag ${itag} sin respuesta legible:`, e?.message || e); }
+}
 async function playSources(st, s) {
   trying = true;
   const log = [];
@@ -57,8 +64,10 @@ async function playSources(st, s) {
     const run = async (list, tag) => {
       for (const src of list) {
         if (P.song !== s) return true;
+        let u = "";
         try {
-          await tryUrl(await src.url(), st, src);
+          u = await src.url();
+          await tryUrl(u, st, src);
           if (src.muxed && (log.length || Date.now() < muxedFirstUntil)) muxedFirstUntil = Date.now() + 10 * 60_000;
           console.info("FrikiMusic: sonando", tag, src.itag, src.mime); st.playing = { bitrate: src.bitrate || 0, mime: src.mime };
 
@@ -69,6 +78,7 @@ async function playSources(st, s) {
           if (e?.name === "AbortError") return true;
           const line = `${tag} itag ${src.itag}${src.muxed ? " (combinado)" : ""}: ${e.name !== "Error" ? e.name + " " : ""}${e.message}`;
           log.push(line); console.warn("FrikiMusic: fuente fallida", s.id, line);
+          if (u) probeUrl(u, src.itag);
         }
       }
       return false;
