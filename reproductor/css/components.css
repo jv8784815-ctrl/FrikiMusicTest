@@ -208,18 +208,19 @@ h1.ht{margin:6px 0 2px}
 .bgv{font-size:.62em;font-weight:600;margin-top:2px;opacity:.8}
 .ly.gap{display:flex;align-items:center;gap:9px;padding:18px 12px;cursor:default;opacity:.5;filter:none}.ly.gap:hover{background:none;opacity:.5}
 .ly.gap.on{opacity:1}
-.gap i{--f:0;position:relative;width:14px;height:14px;border-radius:50%;background:color-mix(in srgb,var(--tx) 20%,transparent);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--tx) 35%,transparent);overflow:hidden;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .4s}
-.gap i::before{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(var(--f)*100%);background:linear-gradient(to top,var(--tx),color-mix(in srgb,var(--tx) 80%,transparent))}
-.gap i::after{content:"";position:absolute;left:-30%;right:-30%;bottom:calc(var(--f)*100% - 3px);height:6px;border-radius:50%;background:color-mix(in srgb,var(--tx) 90%,transparent);opacity:calc(1 - var(--f));transform:scaleY(calc(var(--f)*1.4))}
+.gap i{--f:0;position:relative;width:14px;height:14px;border-radius:50%;background:linear-gradient(to top,var(--tx) calc(var(--f)*100%),color-mix(in srgb,var(--tx) 20%,transparent) calc(var(--f)*100%));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--tx) 35%,transparent);transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .4s}
+.gap i::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--tx);opacity:0;pointer-events:none}
 .gap:not(.on):not(.past) i{--f:0!important}
-.gap.past i{--f:1!important}
+.gap.past i{--f:1!important;opacity:0;transform:scale(0)}
 .gap.on i:not(.done){transform:scale(calc(1 + var(--f)*.18))}
 .gap i.done{animation:dotpop .5s cubic-bezier(.34,1.56,.64,1)}
 .gap.on i.done{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--tx) 60%,transparent))}
-.gap.out i,.gap.out i.done{animation:dotout .55s cubic-bezier(.5,0,.75,0) both}
-.gap.out i:nth-child(2){animation-delay:.09s}.gap.out i:nth-child(3){animation-delay:.18s}
-.gap.past i{opacity:0;transform:scale(0)}
-@keyframes dotout{0%{transform:scale(1);opacity:1;filter:blur(0)}28%{transform:scale(1.5);opacity:1;filter:blur(0)}100%{transform:scale(0);opacity:0;filter:blur(5px)}}
+.gap.out i,.gap.out i.done{animation:dotout .85s cubic-bezier(.4,0,.2,1) both}
+.gap.out i::after{animation:dotring .75s ease-out both}
+.gap.out i:nth-child(2),.gap.out i:nth-child(2)::after{animation-delay:.12s}
+.gap.out i:nth-child(3),.gap.out i:nth-child(3)::after{animation-delay:.24s}
+@keyframes dotout{0%{transform:scale(1);opacity:1;filter:blur(0)}22%{transform:scale(1.55);opacity:1;filter:blur(0)}100%{transform:translateY(-26px) scale(.15);opacity:0;filter:blur(4px)}}
+@keyframes dotring{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(3.4)}}
 @keyframes dotpop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
 @media(max-width:900px){
   .fgrid,.full[data-col=lyrics] .fgrid,.full[data-col=queue] .fgrid{grid-template-columns:minmax(0,1fr);padding:60px 18px 70px;--art:min(84vw,calc(100dvh - 330px),420px)}

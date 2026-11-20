@@ -74,14 +74,15 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
   }
   function gapFrame(row, idx, t) {
     const a = lines[idx].timeMs, b = lines[idx + 1] ? lines[idx + 1].timeMs : a + 4000;
-    const p = Math.min(1, Math.max(0, (t - a) / Math.max(1, b - a)));
+    const reserve = Math.min(1200, (b - a) * .4);
+    const p = Math.min(1, Math.max(0, (t - a) / Math.max(1, b - a - reserve)));
     const dots = row.children;
     for (let n = 0; n < dots.length; n++) {
       const f = Math.min(1, Math.max(0, p * dots.length - n));
       dots[n].style.setProperty("--f", f.toFixed(3));
       dots[n].classList.toggle("done", f >= 1);
     }
-    row.classList.toggle("out", b - t < 700);
+    row.classList.toggle("out", t >= b - reserve);
   }
   function frame() {
     raf = requestAnimationFrame(frame);
