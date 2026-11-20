@@ -16,7 +16,8 @@ module.exports = async function handler(req, res) {
   var country = countryOf(req);
   var wantsCountry = query.scope === 'country';
   var base = { period: query.period, scope: wantsCountry ? 'country' : 'ALL', country: country };
-  if (wantsCountry && !country) return send(res, 200, Object.assign(base, { items: [] }));
+  // El Top por país sale de YouTube Music (lo pide el cliente); aquí solo se informa del país detectado.
+  if (wantsCountry) return send(res, 200, Object.assign(base, { items: [] }));
   try {
     var rows = await rpc('get_top', { p_period: query.period, p_country: wantsCountry ? country : null, p_limit: SIZE });
     var items = (rows || []).map(function (row) {

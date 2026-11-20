@@ -5,7 +5,7 @@ import { parseHome, isNative } from "./native.js";
 import { fetchTop } from "./stats.js";
 import { S, save, applyTheme, toggleLike, isLiked, pushRecent, topArtist, artistNames } from "./store.js";
 import { P, au, playList, playAt, toggle, next, prev, updateSession } from "./player.js";
-import { fetchHomeFeed, fetchArtistPage, fetchPlaylistPage, fetchAlbumPage, fetchAlbumTracks, fetchArtistAvatar } from "./yt.js";
+import { fetchCountryChart, fetchHomeFeed, fetchArtistPage, fetchPlaylistPage, fetchAlbumPage, fetchAlbumTracks, fetchArtistAvatar } from "./yt.js";
 import { V, lists, home, search, artist, album, queue, likes, settings, topGlobal, topCountry, countryName } from "./views.js";
 import { wavy } from "./wavy.js";
 import { ambient, coverColor } from "./ambient.js";
@@ -242,7 +242,8 @@ async function loadTopPage(k) {
   T.loading = true; T.err = "";
   if (cur() === k) drawView();
   try {
-    const d = await fetchTop(T.period, scope);
+    let d = await fetchTop(T.period, scope);
+    if (scope === "country" && d.country) d = { ...d, items: await fetchCountryChart(d.country), source: "yt" };
     topCache.set(key, { d, t: Date.now() });
     if (T.period + scope === key) { T.data = d; if (d.country && d.country !== V.top.country) { V.top.country = d.country; drawRail(); } }
   } catch { if (T.period + scope === key) { T.data = null; T.err = "No se pudo cargar el Top. Inténtalo de nuevo en un momento."; } }

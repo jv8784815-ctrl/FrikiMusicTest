@@ -44,7 +44,7 @@ const secHead = sc => {
 };
 const PERIODS = [["day", "Hoy"], ["week", "Esta semana"], ["month", "Este mes"]];
 export const countryName = c => { try { return new Intl.DisplayNames(["es"], { type: "region" }).of(c) || c; } catch { return c; } };
-const rankRow = key => (s, i) => `<div class="mini rank${P.song?.id === s.id ? " now" : ""}" tabindex="0" data-play="${key}:${i}"><i class="rk">${i + 1}</i>${pic(s.cover, 120, 'loading="lazy"')}<div><b>${esc(s.title)}</b><span>${esc(s.artist)} • ${s.plays} ${s.plays === 1 ? "reproducción" : "reproducciones"}</span></div></div>`;
+const rankRow = key => (s, i) => `<div class="mini rank${P.song?.id === s.id ? " now" : ""}" tabindex="0" data-play="${key}:${i}"><i class="rk">${i + 1}</i>${pic(s.cover, 120, 'loading="lazy"')}<div><b>${esc(s.title)}</b><span>${esc(s.artist)} • ${s.plays == null ? "" : s.plays + (s.plays === 1 ? " reproducción" : " reproducciones")}</span></div></div>`;
 const topRow = rankRow("top");
 const topBlock = () => {
   const T = V.top;
@@ -52,7 +52,7 @@ const topBlock = () => {
   const items = T.data?.items || [], cn = T.country ? countryName(T.country) : "";
   const chips = PERIODS.map(([k, l]) => `<button class="chip${T.period === k ? " on" : ""}" data-top="period:${k}" aria-pressed="${T.period === k}">${l}</button>`).join("")
     + `<span style="flex:1"></span><button class="chip${T.scope === "ALL" ? " on" : ""}" data-top="scope:ALL" aria-pressed="${T.scope === "ALL"}">Global</button>`
-    + (cn ? `<button class="chip${T.scope === "country" ? " on" : ""}" data-top="scope:country" aria-pressed="${T.scope === "country"}">${esc(cn)}</button>` : "");
+;
   const list = T.loading ? `<p class="muted">Cargando…</p>` : items.length ? `<div class="cols r3">${items.slice(0, 12).map(topRow).join("")}</div>` : `<p class="muted">Aún no hay suficientes reproducciones en este periodo.</p>`;
   const place = T.scope === "country" && cn ? "de " + esc(cn) : "global";
   return `<div class="sec"><div class="sech"><small class="strap">Lo más escuchado en FrikiMusic</small><h2>Top ${place}</h2></div></div><div class="top-chips">${chips}</div>${list}`;
@@ -62,15 +62,16 @@ const topPage = scope => {
   const T = V.tops[scope], cn = V.top.country ? countryName(V.top.country) : "", global = scope === "ALL", key = global ? "tg" : "tp";
   const title = global ? "Top FrikiMusic" : cn ? "Top de " + esc(cn) : "Top de tu país";
   const where = global ? " en todo el mundo" : cn ? " en " + esc(cn) : "";
-  const chips = PERIODS.map(([k, l]) => `<button class="chip${T.period === k ? " on" : ""}" data-tp="${k}" aria-pressed="${T.period === k}">${l}</button>`).join("");
+  const chips = global ? PERIODS.map(([k, l]) => `<button class="chip${T.period === k ? " on" : ""}" data-tp="${k}" aria-pressed="${T.period === k}">${l}</button>`).join("") : "";
   const items = T.data?.items || [];
   let body;
   if (T.loading) body = `<p class="muted">Cargando…</p>`;
   else if (T.err) body = `<p class="muted">${esc(T.err)}</p>`;
   else if (!global && T.data && !T.data.country) body = `<p class="muted">No pudimos detectar tu país, así que no hay un Top local para mostrar.</p>`;
   else if (items.length) body = `<div class="toplist">${items.map(rankRow(key)).join("")}</div>`;
+  else if (!global) body = `<p class="muted">YouTube Music no tiene lista de éxitos para tu país por ahora.</p>`;
   else body = `<p class="muted">Aún no hay suficientes reproducciones en este periodo. Las canciones se cuentan después de 30 segundos de reproducción.</p>`;
-  return `<h1>${title}</h1><p class="muted">${TOP_SUB[T.period]}${where}</p><div style="height:14px"></div><div class="top-chips">${chips}</div>${body}`;
+  return `<h1>${title}</h1><p class="muted">${global ? TOP_SUB[T.period] + where : "Lo más escuchado según YouTube Music" + where}</p><div style="height:14px"></div>${chips ? `<div class="top-chips">${chips}</div>` : ""}${body}`;
 };
 export const topGlobal = () => topPage("ALL");
 export const topCountry = () => topPage("country");

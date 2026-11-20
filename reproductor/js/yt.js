@@ -340,6 +340,36 @@ export async function fetchPlaylistPage(playlistId) {
 }
 export async function fetchAlbumTracks(albumId) { return (await fetchAlbumPage(albumId)).tracks; }
 
+const CHART_TITLE = /top\s*(songs|canciones|temas)|canciones.*(populares|top|m[aá]s)|top\s*100|m[aá]s escuchad|songs/i;
+export async function fetchCountryChart(country) {
+  const code = String(country || "").toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) throw new Error("País no válido");
+  const yt = await getInnertube();
+  const page = await yt.actions.execute("/browse", { browseId: "FEmusic_charts", client: "YTMUSIC", formData: { selectedValues: [code] }, parse: true });
+  const tabs = page.contents?.item?.()?.tabs || [];
+  const tab = tabs.find(t => t.selected) || tabs[0];
+  const sections = tab?.content?.contents || [];
+  const shelves = [...sections].filter(n => n?.type === "MusicCarouselShelf" || n?.type === "MusicShelf" || n?.type === "MusicPlaylistShelf");
+  const tracksOf = n => (n.contents || n.items || []).map(homeItem).filter(x => x && x.kind === "track");
+  let best = null;
+  for (const n of shelves) {
+    const title = txt(n.header?.title) || txt(n.title);
+    const items = tracksOf(n);
+    if (!items.length) continue;
+    if (CHART_TITLE.test(title)) { best = { n, items }; break; }
+    best ??= { n, items };
+  }
+  if (!best) throw new Error("YouTube Music no devolvió listas para este país.");
+  let items = best.items;
+  if (items.length < 20) {
+    const link = linkId(best.n.header?.title?.runs?.[0]?.endpoint) || linkId(best.n.header?.more_content?.endpoint) || linkId(best.n.bottom_endpoint);
+    if (/^(VL)?(PL|RD|OLAK)/.test(link)) {
+      try { const pl = await fetchPlaylistPage(link); if (pl.tracks.length > items.length) items = pl.tracks; } catch {}
+    }
+  }
+  return items.slice(0, 50).map(x => ({ id: x.id, title: x.title, artist: x.artist, cover: x.cover, plays: null }));
+}
+
 const MIN_VIDEO_ASPECT = 1.2, AUTO_MAX_HEIGHT = 1080;
 function videoOffer(info, yt) {
   const sd = info.streaming_data;
