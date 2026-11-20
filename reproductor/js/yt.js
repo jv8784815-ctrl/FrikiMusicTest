@@ -55,7 +55,10 @@ async function signedFetch(input, init) {
   if (body != null && typeof body !== "string") body = await new Response(body).text();
   const r = await bridge("ytfetch", { url: url.toString(), method, headers, ...(typeof body === "string" && { body }), auth: true });
   const payload = r.bodyEncoding === "base64" ? Uint8Array.from(atob(r.body), c => c.charCodeAt(0)) : r.body;
-  return new Response([204, 304].includes(r.status) ? null : payload, { status: r.status, headers: r.headers });
+  if (r.status >= 400) console.warn(`[FrikiMusic] ${r.status} en ${url.pathname}:`, String(r.body).slice(0, 400));
+  const res = new Response([204, 304].includes(r.status) ? null : payload, { status: r.status, headers: r.headers });
+  try { Object.defineProperty(res, "url", { value: r.url || url.toString() }); } catch {}
+  return res;
 }
 export function getSignedInnertube() {
   signedInstance ??= makeInnertube(signedFetch).then(yt => { yt.session.logged_in = true; return yt; }, e => { signedInstance = null; throw e; });
@@ -162,16 +165,23 @@ const whyNot = (info, signed = false) => {
   if (/bot/i.test(why)) return new Error(`YouTube pidió verificar que no eres un bot (${why}). Inicia sesión en music.youtube.com en este navegador, recarga la extensión y reintenta.`);
   return new Error(/age|confirm/i.test(why) ? "Canción con restricción de edad: inicia sesión en YouTube Music en este navegador." : `YouTube: ${why}`);
 };
-// Con sesión, primero los clientes web (los que aceptan SAPISIDHASH); VISIONOS no necesita PO token, así que va primero aquí
-const SIGNED_CLIENTS = ["VISIONOS", "YTMUSIC", "WEB"];
+// Con sesión, como BitChord (SIGNED_ORDER): primero los clientes web, que son los que aceptan el SAPISIDHASH; VISIONOS al final
+const SIGNED_CLIENTS = ["YTMUSIC", "WEB", "VISIONOS"];
 let signedFirstUntil = 0; // tras un bloqueo anti-bot, durante 10 min se pide directamente con la sesión
 async function resolveWith(yt, videoId, aq, clients, signed) {
-  let info = await fetchInfo(yt, videoId, clients[0]), used = 0;
-  const firstErr = info;
-  for (let c = 1; info.playability_status?.status !== "OK" && c < clients.length; c++) {
-    try { const alt = await fetchInfo(yt, videoId, clients[c]); if (alt.playability_status?.status === "OK") { info = alt; used = c; } } catch {}
+  let info = null, used = -1, firstErr = null, netErr = null;
+  for (let c = 0; c < clients.length; c++) {
+    let alt;
+    try { alt = await fetchInfo(yt, videoId, clients[c]); }
+    catch (e) { console.warn(`[FrikiMusic] ${signed ? "con sesión" : "anónimo"} ${clients[c]} falló:`, e?.message || e); netErr ??= new Error(`${clients[c]}: ${e?.message || e}`); continue; }
+    firstErr ??= alt;
+    if (alt.playability_status?.status === "OK") { info = alt; used = c; break; }
+    console.warn(`[FrikiMusic] ${signed ? "con sesión" : "anónimo"} ${clients[c]}: ${reasonOf(alt)}`);
   }
-  if (info.playability_status?.status !== "OK") throw Object.assign(whyNot(firstErr, signed), { gate: GATE.test(reasonOf(firstErr)), bot: /bot/i.test(reasonOf(firstErr)) });
+  if (!info) {
+    if (!firstErr) throw netErr || new Error("Sin respuesta de YouTube");
+    throw Object.assign(whyNot(firstErr, signed), { gate: GATE.test(reasonOf(firstErr)), bot: /bot/i.test(reasonOf(firstErr)) });
+  }
   const sources = audioSources(info, yt, aq);
   // Otros clientes, solo si ninguna de las fuentes anteriores se deja reproducir
   const more = async () => {
