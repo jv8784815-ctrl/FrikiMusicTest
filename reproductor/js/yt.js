@@ -363,7 +363,9 @@ function rawChartItem(node) {
   }
   return null;
 }
-function rawChart(data) {
+
+const PL_ID = /^(VL)?(PL|RD|OLAK|OL|LM)/;
+function rawShelves(data) {
   const shelves = [];
   const walk = n => {
     if (!n || typeof n !== "object") return;
@@ -371,15 +373,32 @@ function rawChart(data) {
     const c = n.musicCarouselShelfRenderer || n.musicShelfRenderer;
     if (c) {
       const h = c.header?.musicCarouselShelfBasicHeaderRenderer?.title || c.title;
-      shelves.push({ title: runsText(h), items: (c.contents || []).map(rawChartItem).filter(Boolean) });
+      const items = [], lists = [];
+      for (const node of c.contents || []) {
+        const it = rawChartItem(node);
+        if (it) { items.push(it); continue; }
+        const t = node.musicTwoRowItemRenderer;
+        const id = t?.navigationEndpoint?.browseEndpoint?.browseId || t?.navigationEndpoint?.watchPlaylistEndpoint?.playlistId || "";
+        if (t && PL_ID.test(id)) lists.push({ id, title: runsText(t.title) });
+      }
+      shelves.push({ title: runsText(h), items, lists });
     }
     Object.values(n).forEach(walk);
   };
   walk(data);
-  const withItems = shelves.filter(x => x.items.length);
-  const pick = withItems.find(x => CHART_TITLE.test(x.title)) || withItems.find(x => x.items.every(i => i.song)) || withItems[0];
-  if (!pick) throw new Error("La respuesta de YouTube Music no trae canciones (" + shelves.length + " secciones)");
-  return pick.items;
+  return shelves;
+}
+const IS_SONGS = /canciones|songs|temas|tracks/i, NOT_SONGS = /v[ií]deo|artist/i;
+async function chartFrom(data) {
+  const shelves = rawShelves(data);
+  const direct = shelves.filter(x => x.items.length);
+  const pickDirect = direct.find(x => CHART_TITLE.test(x.title)) || direct.find(x => x.items.every(i => i.song));
+  if (pickDirect) return pickDirect.items;
+  const lists = shelves.flatMap(x => x.lists.map(l => ({ ...l, shelf: x.title })));
+  const pl = lists.find(l => IS_SONGS.test(l.title) && !NOT_SONGS.test(l.title)) || lists.find(l => IS_SONGS.test(l.shelf) && !NOT_SONGS.test(l.shelf)) || lists.find(l => !NOT_SONGS.test(l.title + " " + l.shelf)) || lists[0];
+  if (pl) return (await fetchPlaylistPage(pl.id)).tracks;
+  if (direct.length) return direct[0].items;
+  throw new Error("sin canciones ni listas: " + shelves.map(x => `${x.title || "?"} [${x.items.length} canc., ${x.lists.length} listas]`).join("; "));
 }
 export async function fetchCountryChart(country) {
   const code = String(country || "").toUpperCase();
@@ -387,6 +406,6 @@ export async function fetchCountryChart(country) {
   const yt = await getInnertube();
   const res = await yt.actions.execute("/browse", { browseId: "FEmusic_charts", client: "YTMUSIC", formData: { selectedValues: [code] } });
   if (!res?.success) throw new Error("YouTube Music respondió " + res?.status_code);
-  const items = rawChart(res.data);
+  const items = await chartFrom(res.data);
   return items.slice(0, 50).map(x => ({ id: x.id, title: x.title, artist: x.artist, cover: x.cover, plays: null }));
 }
