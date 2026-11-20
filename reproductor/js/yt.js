@@ -240,6 +240,23 @@ export async function fetchArtistAvatar(name) {
   } catch { return ""; }
 }
 
+async function artistAvatarById(name, id) {
+  try {
+    const yt = await getInnertube();
+    const res = await yt.music.search(String(name || ""), { type: "artist" });
+    const seen = new Set();
+    const find = node => {
+      if (!node || typeof node !== "object" || seen.has(node)) return null;
+      seen.add(node);
+      if (node.item_type === "artist" && node.id === id && node.thumbnails?.length) return node;
+      for (const v of Object.values(node)) { if (Array.isArray(v)) { for (const c of v) { const f = find(c); if (f) return f; } } else if (v && typeof v === "object") { const f = find(v); if (f) return f; } }
+      return null;
+    };
+    const a = find(res.contents);
+    return [...(a?.thumbnails || [])].sort((x, y) => (y.width || 0) - (x.width || 0))[0]?.url || "";
+  } catch { return ""; }
+}
+
 export async function fetchArtistPage(idOrName) {
   const yt = await getInnertube();
   let id = String(idOrName || "").trim();
@@ -264,10 +281,12 @@ export async function fetchArtistPage(idOrName) {
   const header = page.header || {};
   const name = header.title?.text || header.title?.toString?.() || id;
   const pickImage = thumbs => [...(thumbs || [])].sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || "";
+  const avatarP = artistAvatarById(name, id);
 
   let heroImage = [header.thumbnail?.contents, header.thumbnail, header.foreground_thumbnail, header.background?.contents, header.background, header.thumbnails]
     .map(t => pickImage(Array.isArray(t) ? t : [])).find(Boolean) || "";
-  if (!heroImage) heroImage = await fetchArtistAvatar(name);
+  const avatar = await avatarP;
+  if (!heroImage) heroImage = avatar || await fetchArtistAvatar(name);
   const toTrack = item => {
     if (!item?.id || !item?.title) return null;
     const artists = item.artists?.map(a => a.name).filter(Boolean).join(", ") || name;
@@ -291,7 +310,7 @@ export async function fetchArtistPage(idOrName) {
     }))
   }; }).filter(section => section.items.length);
   const audience = header.subscription_button?.subscriber_count?.text || header.subscription_button?.short_subscriber_count?.text || "";
-  return { id, name, heroImage, audience, description: header.description?.text || "", topSongs, shelves };
+  return { id, name, heroImage, avatar, audience, description: header.description?.text || "", topSongs, shelves };
 }
 
 export async function fetchAlbumPage(albumId) {

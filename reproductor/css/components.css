@@ -361,3 +361,13 @@ body{background:var(--bg);transition:background .6s}
 [data-density=compact] .toplist{grid-auto-rows:60px}[data-density=airy] .toplist{grid-auto-rows:80px}
 .rail .item span{overflow:hidden;text-overflow:ellipsis}
 @media(max-width:900px){.toplist{grid-template-columns:1fr}}
+
+/* Artista: hero difuminado con retrato */
+.artist-hero{display:flex;align-items:flex-end;gap:clamp(20px,3.4vw,52px);height:auto;min-height:clamp(400px,46vw,560px);margin-top:-6px;padding:clamp(26px,4.5vw,64px)}
+.artist-photo img{filter:blur(56px) saturate(1.25) brightness(.62);transform:scale(1.35)}
+.artist-shade{background:linear-gradient(0deg,#07090dd9 0%,#07090d59 48%,#07090d1f 100%)}
+.artist-portrait{position:relative;z-index:2;flex:none;width:clamp(170px,22vw,300px);aspect-ratio:1;border-radius:calc(24px*var(--rk));overflow:hidden;background:var(--s2);box-shadow:0 22px 60px #000a,0 0 0 1px #ffffff1f}
+.artist-portrait img{width:100%;height:100%;object-fit:cover;object-position:center 22%}
+.artist-intro{position:relative;left:auto;right:auto;bottom:auto;flex:1}
+@media(max-width:760px){.artist-hero{flex-direction:column;align-items:flex-start;justify-content:flex-end;min-height:480px;gap:22px}.artist-portrait{width:min(58vw,220px)}}
+@media(max-width:420px){.artist-hero{min-height:440px;padding:22px}}
