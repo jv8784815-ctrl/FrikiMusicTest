@@ -1,9 +1,9 @@
-// Estado de la extensión FrikiMusic Bridge + tarjeta de instalación (descarga del zip y pasos).
-// El zip va en la RAÍZ del repo; aquí solo hay que cambiar el nombre si lo llamas distinto.
+
+
 import { isNative } from "./native.js";
 export const EXT_ZIP = "/FrikiMusic-Bridge.zip";
-export const X = { ok: null }; // null = comprobando, true = detectada, false = no responde
-export const needsExt = !isNative; // la app de Android no usa extensión
+export const X = { ok: null };
+export const needsExt = !isNative;
 
 const edge = /Edg\//.test(navigator.userAgent);
 const where = edge ? "edge://extensions" : "chrome://extensions";
@@ -21,7 +21,6 @@ export const zipButton = (cls = "fill") => `<a class="chip ${cls}" href="${EXT_Z
 
 export const extSteps = () => `<ol class="extsteps">${STEPS.map(s => `<li>${s}</li>`).join("")}</ol>`;
 
-// Sección completa de Ajustes
 export function extSection() {
   if (!needsExt) return "";
   const st = X.ok === true ? `<span class="extst ok">Detectada ✓</span>` : X.ok === false ? `<span class="extst no">No detectada</span>` : `<span class="extst">Comprobando…</span>`;
@@ -31,7 +30,6 @@ export function extSection() {
   return `<section class="ssec"><h2>Extensión</h2><div class="scard">${head}${btns}${X.ok === true ? "" : how}</div></section>`;
 }
 
-// Aviso para Inicio / Búsqueda cuando la extensión no responde
 export const extBanner = () => needsExt && X.ok === false
   ? `<div class="promo"><div><b>Falta la extensión FrikiMusic Bridge</b><span>La necesitas para buscar y reproducir. Descárgala e instálala en un minuto.</span></div><a class="chip fill" href="#/settings" style="text-decoration:none">Descargar e instalar</a></div>`
   : "";

@@ -1,6 +1,5 @@
-// Reproducción HLS (directos y estrenos de YouTube, como "The Station").
-// Se usa hls.js (vendor/hls.min.js) siempre que se pueda; el HLS nativo del navegador solo es el último recurso,
-// porque en Chrome suele cortarse a los pocos segundos con los directos de YouTube.
+
+
 const native = () => document.createElement("video").canPlayType("application/vnd.apple.mpegurl") !== "";
 let loading = null;
 export const loadHls = () => loading ??= new Promise(ok => {

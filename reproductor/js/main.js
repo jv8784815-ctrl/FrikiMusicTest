@@ -132,13 +132,12 @@ au.addEventListener("timeupdate", () => document.querySelectorAll("[data-cur]").
 au.addEventListener("loadedmetadata", () => document.querySelectorAll("[data-dur]").forEach(e => e.textContent = fmt(au.duration)));
 let lastErr = ""; P.on(() => { drawBar(); if (cur() === "queue" || cur() === "home" || cur() === "artist" || cur() === "album") drawView(); if (P.error && P.error !== lastErr) toast(P.error); lastErr = P.error; });
 
-// Búsqueda: guarda la consulta en recientes, evita que una respuesta lenta pise a otra más nueva y recuerda 10 min lo ya buscado
 const cache = new Map(); let tok = 0;
 async function runSearch(q, force) {
   q = String(q).trim(); if (!q) return;
   const mine = ++tok, key = q.toLowerCase(), hit = !force && cache.get(key);
   pushRecent(q); $("#q").value = q; $("#searchForm").classList.add("has");
-  if (matchMedia("(hover:none)").matches) $("#q").blur(); // en el móvil, esconde el teclado
+  if (matchMedia("(hover:none)").matches) $("#q").blur();
   closeSug();
   V.q = q; V.filter = "all"; V.err = ""; location.hash = "#/search";
   if (hit && Date.now() - hit.t < 6e5) { V.results = hit.r; V.loading = false; setBusy(false); return drawView(); }

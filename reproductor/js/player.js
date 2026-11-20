@@ -25,15 +25,13 @@ export async function playAt(i) {
     if (P.song !== s) return;
     P.media = st;
     await playSources(st, s);
-    // Canción con vídeo pero la respuesta del audio no lo traía: se busca en otros clientes sin frenar el audio
+
     if (s.video && !st.video && st.findVideo && P.song === s) st.videoLookup = st.findVideo().then(v => { if (v && P.media === st && P.song === s) { st.video = v; emit(); } }).catch(() => {});
   } catch (e) { P.error = /supported source/.test(e.message) ? "El navegador no pudo cargar el audio. " + e.message.replace(/^supported source\s*\|?\s*/, "").slice(0, 300) : e.message; if (P.error) console.error("FrikiMusic:", e); }
   P.loading = false; emit();
 }
 
-// Prueba las fuentes de audio una a una (opus, aac, formato combinado y, si hace falta, otros clientes de YouTube)
-// hasta que una suene. Así los vídeos como "The Station" también se reproducen aunque el mejor formato falle.
-let trying = false, detachAudio = () => {}, muxedFirstUntil = 0; // muxedFirstUntil: si los formatos adaptativos fallan, 10 min probando antes el combinado
+let trying = false, detachAudio = () => {}, muxedFirstUntil = 0;
 const resetAudio = () => { try { detachAudio(); } catch {} detachAudio = () => {}; };
 const tryUrl = (url, st, src) => new Promise(async (ok, no) => {
   const done = f => v => { clearTimeout(t); au.removeEventListener("error", bad); f(v); };
@@ -44,7 +42,7 @@ const tryUrl = (url, st, src) => new Promise(async (ok, no) => {
   if (src?.hls) { try { detachAudio = await attachHls(au, url, { audio: AQ.quality }); } catch (e) { return done(no)(e); } }
   else { au.src = url; if (resumeAt > 0) { try { au.currentTime = resumeAt; } catch {} } }
   au.play().then(() => {
-    // Duración imposible = flujo de directo/estreno: suena unos segundos y se corta. Se descarta y se prueba otra fuente.
+
     const d = au.duration, exp = st.duration || 0;
     const insane = !st.live && !src?.hls && (!isFinite(d) || (exp > 0 ? d > exp * 1.5 + 30 : d > 6 * 3600));
     if (insane) { au.pause(); return done(no)(new Error(`duración anómala (${isFinite(d) ? Math.round(d) + " s" : "infinita"}, esperada ${Math.round(exp)} s)`)); }
@@ -62,7 +60,7 @@ async function playSources(st, s) {
           await tryUrl(await src.url(), st, src);
           if (src.muxed && (log.length || Date.now() < muxedFirstUntil)) muxedFirstUntil = Date.now() + 10 * 60_000;
           console.info("FrikiMusic: sonando", tag, src.itag, src.mime); st.playing = { bitrate: src.bitrate || 0, mime: src.mime };
-          // El vídeo debe salir de la misma respuesta que el audio que funcionó (si no, el clip puede ser un flujo roto o faltar)
+
           try { const v = src.video?.(); if (v) st.video = v; } catch {}
           return true;
         }

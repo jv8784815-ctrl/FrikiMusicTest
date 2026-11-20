@@ -1,4 +1,4 @@
-// Barra de progreso ondulada, como WavySeekBar.kt de la app de escritorio
+
 import { au, seekTo } from "./player.js";
 import { S } from "./store.js";
 export function wavy(canvas) {

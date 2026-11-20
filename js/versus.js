@@ -26,7 +26,6 @@
     end: 'Todo incluido. Y gratis.'
   };
 
-  // El “pero” de cada app (plan gratuito). Revisa estos textos de vez en cuando.
   var PERO = {
     spotify: ['paid', 'Descargas solo con Premium'],
     soundcloud: ['no', 'Sin letras sincronizadas'],
@@ -223,7 +222,6 @@
     replay.hidden = true;
   }
 
-  // Estado final, sin movimiento
   function showFinal() {
     rows.forEach(function (r) {
       r.classList.add('is-in');
@@ -246,20 +244,17 @@
     var t = 300;
     var apps = ['spotify', 'soundcloud', 'ytmusic', 'deezer'];
 
-    // Escena 1: cada app aparece y enseña su “pero”
     apps.forEach(function (app, i) {
       var r = rowOf(app);
       at(t + i * 650, function () { r.classList.add('is-in'); });
       at(t + i * 650 + 450, function () { paintRow(r, PERO[app], true); });
     });
 
-    // Escena 2: entra FrikiMusic
     var s2 = t + apps.length * 650 + 1200;
     at(s2, function () { say(CAPTION.friki); });
     at(s2 + 500, function () { rowOf('friki').classList.add('is-in'); });
     at(s2 + 900, function () { win.classList.remove('is-idle'); });
 
-    // Escena 3: función por función, y el marcador sube
     var s3 = s2 + 2400;
     ORDER.forEach(function (f, k) {
       var t0 = s3 + k * STEP;
@@ -277,7 +272,6 @@
       });
     });
 
-    // Final
     var end = s3 + ORDER.length * STEP;
     at(end, function () {
       clearLoops();

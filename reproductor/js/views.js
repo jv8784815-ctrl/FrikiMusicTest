@@ -6,7 +6,7 @@ import { winButton } from "./download.js";
 import { extBanner } from "./ext.js";
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 export const V = { top: { period: "week", scope: "ALL", data: null, loading: false, ok: false, country: "" }, topArtist: null, q: "", results: [], feed: [], home: [], loading: false, ext: null, filter: "all", err: "", artist: "", artistId: "", artistPage: null, artistSongs: [], artistShelfTracks: {}, artistLoading: false, artistErr: "", albumId: "", albumPage: null, albumTracks: [], albumLoading: false, albumErr: "" };
-// Resultados visibles según el filtro activo (Todo / Canciones / Vídeos). Los índices data-play="search:i" apuntan a esta lista.
+
 export const shown = () => V.filter === "video" ? V.results.filter(s => s.video) : V.filter === "song" ? V.results.filter(s => !s.video) : V.results;
 const hl = (t, q) => {
   const w = [...new Set(String(q || "").split(/\s+/).filter(x => x.length > 1))].map(x => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
@@ -18,7 +18,7 @@ const TITLES = { "From the community": "De la comunidad", "Music videos for you"
 const secTitle = t => TITLES[t] || t;
 const vb = s => s.video ? `<i class="vbadge">Vídeo</i>` : "";
 const eq = `<span class="eq"><i></i><i></i><i></i></span>`;
-// Mixes automáticos: canciones de tus recientes y favoritos agrupadas por artista (mínimo 2 canciones)
+
 export function mixes() {
   const seen = new Set(), by = new Map();
   for (const s of [...S.history, ...S.likes]) { if (seen.has(s.id) || !s.artist) continue; seen.add(s.id); (by.get(s.artist) ?? by.set(s.artist, []).get(s.artist)).push(s); }
@@ -87,8 +87,8 @@ export function home() {
     + (H.likes && S.likes.length ? sec("Tus favoritos") + `<div class="shelf xl hs">${S.likes.slice(0, 15).map((s, i) => card(s, "likes", i)).join("")}</div>` : "");
   return `<h1 class="ht">Inicio</h1>` + extBanner() + promo() + (body || empty("Inicio vacío", "Has ocultado todas las secciones. Vuelve a activarlas en Ajustes → Inicio.", `<a class="chip fill" href="#/settings" style="text-decoration:none">Abrir ajustes</a>`));
 }
-const extNote = () => ``; // el aviso con descarga ahora es extBanner()
-// Atajos de género para la pantalla vacía: [texto del botón, consulta que se envía]. Edita esta lista a tu gusto.
+const extNote = () => ``;
+
 const GENRES = [["Pop", "pop hits"], ["Rock", "rock clásico"], ["Reguetón", "reggaeton hits"], ["Hip hop", "hip hop hits"], ["Electrónica", "electronic music"], ["Lo-fi", "lofi beats"],
   ["Metal", "metal"], ["Indie", "indie"], ["K-pop", "k-pop"], ["Anime openings", "anime openings"], ["Videojuegos", "video game soundtrack"]];
 const FILTERS = [["all", "Todo"], ["song", "Canciones"], ["video", "Vídeos"]];
@@ -118,7 +118,7 @@ export function artist() {
   if (V.artistLoading) return `<button class="lnk back-link" data-act="back">‹ Volver</button><div class="artist-loading"><i></i><i></i><i></i></div><h1>Buscando a ${name}…</h1>`;
   if (V.artistErr) return `<button class="lnk back-link" data-act="back">‹ Volver</button><h1>${name}</h1>${empty("No se pudo cargar el perfil", esc(V.artistErr))}`;
   if (!songs.length && !V.artistPage?.shelves?.length) return `<button class="lnk back-link" data-act="back">‹ Volver</button><h1>${name}</h1>${empty("No encontramos canciones", "Prueba a abrir el perfil desde una canción o revisa la conexión con YouTube Music.")}`;
-  // Solo la foto real del artista: nunca la portada de una canción (si no hay foto, se ve el degradado)
+
   const data = V.artistPage || {}, heroUrl = data.heroImage || "", hero = heroUrl ? `<img src="${esc(hqPx(heroUrl, 1200))}" data-o="${esc(heroUrl)}" alt="" decoding="async">` : "";
   V.artistShelfTracks = Object.fromEntries((data.shelves || []).map((shelf, shelfIndex) => [`artist-shelf-${shelfIndex}`, shelf.items.filter(item => item.kind === "video" || item.kind === "song").map(item => ({ id: item.id, title: item.title, artist: V.artist, artistId: V.artistId, meta: item.subtitle, cover: item.cover || `https://i.ytimg.com/vi/${encodeURIComponent(item.id)}/hqdefault.jpg`, video: item.kind === "video" }))]));
   const releases = (data.shelves || []).map((shelf, shelfIndex) => { const playable = shelf.items.filter(item => item.kind === "video" || item.kind === "song"); return `<section class="artist-release-section"><div class="sec"><h2>${esc(shelf.title)}</h2></div><div class="artist-releases">${shelf.items.map(item => { const tag = ({ album: "ÁLBUM", artist: "ARTISTA", playlist: "LISTA", video: "VIDEO" })[item.kind] || ""; const trackIndex = playable.findIndex(track => track.id === item.id); const action = item.kind === "album" && item.id ? `data-release="${esc(item.id)}"` : trackIndex >= 0 ? `data-play="artist-shelf-${shelfIndex}:${trackIndex}"` : ""; const related = item.kind === "artist" && item.id ? `<button class="related-artist" data-artist="${esc(item.title)}" data-artist-id="${esc(item.id)}">Ver artista</button>` : ""; return `<article class="artist-release" ${action}><div class="release-art">${item.cover ? pic(item.cover, 220, 'loading="lazy"') : ""}${tag ? `<span>${tag}</span>` : ""}${action && item.kind !== "artist" ? `<i class="release-play" aria-hidden="true">${icon("play", 19)}</i>` : ""}</div><b>${esc(item.title)}</b><small>${esc(item.subtitle)}</small>${related}</article>`; }).join("")}</div></section>`; }).join("");

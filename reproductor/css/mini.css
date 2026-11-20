@@ -1,4 +1,4 @@
-/* Mini reproductor flotante: esta hoja también se copia a la ventana flotante */
+
 @keyframes mspin{to{rotate:360deg}}
 @keyframes gdrift{from{transform:translate(-3%,-2%) scale(1.05) rotate(0)}to{transform:translate(3%,2%) scale(1.15) rotate(6deg)}}
 .mp{--pad:12px;height:100vh;position:relative;isolation:isolate;overflow:hidden;padding:var(--pad);display:grid;background:var(--s0);color:var(--tx)}
@@ -19,7 +19,6 @@
 .mp .ibtn,.mp .play{transition:background .2s,scale .25s cubic-bezier(.34,1.56,.64,1),border-radius .25s}
 .mp .ibtn:active,.mp .play:active{scale:.88}
 
-/* Liquid Glass (iOS 26): cristal transparente que refracta el fondo; la forma la dibuja glassfx.js */
 .mp[data-design=glass],.mp[data-design=capsule]{--pad:18px;--ipad:16px;--tx:#fff;--tx2:rgba(255,255,255,.8);--p:#fff;--on-p:#111;--olv:rgba(255,255,255,.32);color:#fff;background:#0b0b0d}
 .mp[data-design=glass] .mbg::before,.mp[data-design=capsule] .mbg::before{inset:-30%;background:var(--cov) center/cover,#222;filter:blur(26px) saturate(1.8) brightness(.78);opacity:1;animation:gdrift 22s ease-in-out infinite alternate}
 .mp[data-design=glass] .mbg::after,.mp[data-design=capsule] .mbg::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.16) 0 1px,transparent 1px 44px),repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 1px,transparent 1px 44px)}
@@ -47,7 +46,6 @@
 .mp[data-design=capsule] .ibtn{width:34px;height:34px}.mp[data-design=capsule] .play{width:42px;height:42px}
 .mp[data-design=capsule] .wavy-wrap canvas{height:20px}
 
-/* Vinilo */
 .mp[data-design=vinyl] .cw{border-radius:50%;background:repeating-radial-gradient(circle at 50% 50%,#0a0a0b 0 1.5px,#18181b 1.5px 3px);box-shadow:0 14px 32px #000a,inset 0 0 0 2px #2c2c31;animation:mspin 9s linear infinite}
 .mp[data-design=vinyl].paused .cw{animation-play-state:paused}
 .mp[data-design=vinyl] .cw::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 30deg,transparent 0 8%,rgba(255,255,255,.17) 13%,transparent 20% 58%,rgba(255,255,255,.12) 64%,transparent 72%);pointer-events:none}
@@ -55,7 +53,6 @@
 .mp[data-design=vinyl] .cov{position:absolute;inset:30%;width:40%;height:40%;border-radius:50%;box-shadow:none;scale:1!important}
 .mp[data-design=vinyl] .mbg::before{opacity:.55}
 
-/* Portada: la carátula ocupa toda la ventana */
 .mp[data-design=poster]{--pad:14px;--tx:#fff;--tx2:rgba(255,255,255,.8);--p:#fff;--on-p:#111;--olv:rgba(255,255,255,.35);color:#fff;background:#000}
 .mp[data-design=poster] .mbg{display:none}
 .mp[data-design=poster] .mc{grid-template-columns:minmax(0,1fr);align-items:end;height:100%}

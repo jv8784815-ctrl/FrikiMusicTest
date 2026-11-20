@@ -1,14 +1,14 @@
-// Botón "Descargar para Windows" del reproductor. Apunta a /api/windows (redirige siempre al .exe, nunca al APK)
-// y, cuando /api/downloads responde, pasa al enlace directo y muestra versión y tamaño.
+
+
 import { isNative } from "./native.js";
 const W = { url: "/api/windows", meta: "Instalador .exe" };
-export const showWinDownload = !isNative; // dentro de la app de Android no tiene sentido
+export const showWinDownload = !isNative;
 const mb = b => b ? (b / 1048576 >= 100 ? (b / 1048576).toFixed(0) : (b / 1048576).toFixed(1)) + " MB" : "";
 const apply = () => document.querySelectorAll("[data-win-dl]").forEach(a => {
   a.href = W.url;
   const m = a.querySelector(".wb-meta"); if (m) m.textContent = W.meta;
 });
-// Logo de Windows como máscara: se pinta con el degradado del acento
+
 const LOGO = `<span class="wb-logo" aria-hidden="true"></span>`;
 export const winButton = (cls = "") => showWinDownload
   ? `<a class="win-badge ${cls}" data-win-dl href="${W.url}" title="Descargar FrikiMusic para Windows" aria-label="Descargar FrikiMusic para Windows">`

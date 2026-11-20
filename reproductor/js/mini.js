@@ -1,6 +1,5 @@
-// Mini reproductor flotante (Document Picture-in-Picture de Chrome/Edge 116+):
-// una ventana pequeña siempre encima, con portada, controles, barra ondulada y la línea de letra que suena.
-// El audio sigue siendo el de la página principal: esta ventana solo lo muestra y lo controla.
+
+
 import { icon } from "./icons.js";
 import { hq } from "./img.js";
 import { P, au, toggle, next, prev } from "./player.js";
@@ -33,7 +32,6 @@ const html = () => `<div class="mp"><div class="mbg"></div><div class="mc">
       <div class="wavy-wrap"><span class="t" data-cur>0:00</span><canvas data-wavy></canvas><span class="t" data-dur>0:00</span></div></div>
   </div></div></div>`;
 
-// La ventana nueva no hereda nada: se copian las hojas de estilo y los atributos del <html> (tema, acento, variables en línea)
 const sync = () => {
   if (!pip) return;
   const r = document.documentElement, p = pip.document.documentElement;
@@ -120,7 +118,6 @@ export async function toggleMini() {
   finally { opening = false; }
 }
 
-// Experimental: Chrome puede abrirlo solo al cambiar de pestaña o de ventana mientras suena música
 export function setAutoMini() {
   try { navigator.mediaSession.setActionHandler("enterpictureinpicture", S.cfg.miniAuto && miniSupported() ? () => { if (!pip) toggleMini(); } : null); } catch {}
 }

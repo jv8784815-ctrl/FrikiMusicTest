@@ -9,8 +9,7 @@
   var caption = document.getElementById('pcCaption');
   var nameEl = document.getElementById('pcName');
   var lockup = document.getElementById('pcLockup');
-  // Si Windows/el navegador tiene «reducir movimiento» activado, antes la escena saltaba
-  // directa al final y nunca se animaba. Ponlo en true para volver a respetar ese ajuste.
+
   var RESPECT_REDUCED_MOTION = false;
   var reduced = RESPECT_REDUCED_MOTION && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduced) document.documentElement.classList.add('pcs-reduced');
@@ -22,7 +21,6 @@
     done: 'FrikiMusic llega a tu PC.'
   };
 
-  // Desplazamiento (en unidades del dibujo 256×256) de cada trazo respecto al símbolo final
   var OFF = [{ x: -34, y: -30 }, { x: 34, y: -30 }, { x: -34, y: 32 }, { x: 34, y: 32 }];
 
   var T = {
@@ -112,7 +110,6 @@
     a.onfinish = function () { ring.remove(); };
   }
 
-  // Posición en pantalla (px, relativa al escenario) de un punto del trazo i
   function screenPos(i, frac, conv) {
     var pt = strokes[i].getPointAtLength(clamp(frac, 0, 1) * L);
     var ox = OFF[i].x * (1 - conv), oy = OFF[i].y * (1 - conv);
@@ -227,13 +224,8 @@
 
   if (reduced) { showFinal(); return; }
 
-  // --- Disparo de la animación ---------------------------------------------
-  // Antes arrancaba en cuanto la escena asomaba, a veces ya al cargar (monitores
-  // grandes o scroll restaurado tras refrescar) y se acababa sin que nadie la viera.
-  // Ahora: espera a que la página esté cargada, exige que la escena se vea casi
-  // entera y, si ya está a la vista al cargar, aguarda un instante antes de empezar.
-  var ready = false;      // página cargada y fuentes listas
-  var visible = false;    // escena ≥ 60 % visible
+  var ready = false;
+  var visible = false;
   var startTimer = 0;
   var loadedAt = 0;
 
@@ -262,9 +254,7 @@
   }
 
   if ('IntersectionObserver' in window) {
-    // Una sola vigilancia sobre la escena:
-    //  - ≥ 60 % visible  -> arranca (si la página ya cargó)
-    //  - < 35 % visible  -> se reinicia, así al volver a bajar empieza de cero
+
     var thr = [];
     for (var q = 0; q <= 20; q++) thr.push(q / 20);
     new IntersectionObserver(function (entries) {
@@ -283,7 +273,6 @@
     visible = true;
   }
 
-  // Refrescar o volver con «atrás» (bfcache): siempre desde el principio
   window.addEventListener('pageshow', function (ev) {
     if (ev.persisted) { loadedAt = performance.now(); rearm(); }
   });

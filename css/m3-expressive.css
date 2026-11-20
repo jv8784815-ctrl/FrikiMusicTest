@@ -1,29 +1,19 @@
-/* =====================================================================
-   FrikiMusic · Material Design 3 (capa final)
-   Se carga DESPUÉS de md3.css. Sigue las especificaciones de m3.material.io:
-   - Tokens de movimiento (easing y duraciones) oficiales
-   - Capas de estado (hover 8 %, foco 10 %, pulsado 10 %) y ripple
-   - Botones: filled, tonal, outlined, text, elevated + morfado de forma al pulsar
-   - Chips de filtro, botón segmentado, icon buttons, FAB extendido, snackbar
-   - Carrusel arrastrable con zoom por distancia y escritorio de ventanas movibles
-   ===================================================================== */
+
 
 :root {
-  /* Movimiento M3 */
-  --m3-ease: cubic-bezier(.2, 0, 0, 1);              /* emphasized */
-  --m3-ease-decel: cubic-bezier(.05, .7, .1, 1);     /* emphasized decelerate */
-  --m3-ease-accel: cubic-bezier(.3, 0, .8, .15);     /* emphasized accelerate */
+
+  --m3-ease: cubic-bezier(.2, 0, 0, 1);
+  --m3-ease-decel: cubic-bezier(.05, .7, .1, 1);
+  --m3-ease-accel: cubic-bezier(.3, 0, .8, .15);
   --m3-ease-std: cubic-bezier(.2, 0, 0, 1);
   --m3-d-short2: 100ms; --m3-d-short4: 200ms;
   --m3-d-med2: 300ms;   --m3-d-med4: 400ms;
   --m3-d-long2: 500ms;  --m3-d-long4: 600ms;
 
-  /* Elevación M3 (sombras de umbra + penumbra) */
   --m3-elev1: 0 1px 2px rgba(0,0,0,.30), 0 1px 3px 1px rgba(0,0,0,.15);
   --m3-elev2: 0 1px 2px rgba(0,0,0,.30), 0 2px 6px 2px rgba(0,0,0,.15);
   --m3-elev3: 0 1px 3px rgba(0,0,0,.30), 0 4px 8px 3px rgba(0,0,0,.15);
 
-  /* Formas M3 */
   --m3-shape-xs: 4px; --m3-shape-sm: 8px; --m3-shape-md: 12px;
   --m3-shape-lg: 16px; --m3-shape-xl: 28px;
 }
@@ -31,16 +21,10 @@
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
-/* ---------------------------------------------------------------------
-   Barra de progreso de scroll (linear progress indicator, 3 px)
-   --------------------------------------------------------------------- */
 .scroll-progress { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 120; pointer-events: none; }
 .scroll-progress span { display: block; height: 100%; width: 100%; transform-origin: 0 50%; transform: scaleX(0);
   background: var(--md-primary); border-radius: 0 3px 3px 0; }
 
-/* ---------------------------------------------------------------------
-   Capa de estado + ripple (comunes a todos los componentes interactivos)
-   --------------------------------------------------------------------- */
 .btn, .m3-chip, .m3-seg-btn, .m3-iconbtn, .theme-toggle, .nav-toggle, .m3-fab {
   position: relative; overflow: hidden; isolation: isolate; -webkit-tap-highlight-color: transparent;
 }
@@ -61,17 +45,12 @@ html { scroll-behavior: smooth; }
   transform: scale(0); animation: m3-ripple 550ms var(--m3-ease-decel) forwards; }
 @keyframes m3-ripple { to { transform: scale(1); opacity: 0; } }
 
-/* Los botones que antes eran "hover = oscurecer" ahora usan solo capa de estado */
 .btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:focus-visible { background: var(--md-primary); color: var(--md-on-primary); box-shadow: none; }
 .btn-primary:hover { box-shadow: var(--m3-elev1); }
 .btn-tonal, .btn-tonal:hover, .btn-tonal:active, .btn-ghost, .btn-ghost:hover, .btn-ghost:active {
   background: var(--md-secondary-container); color: var(--md-on-secondary-container); box-shadow: none; }
 .btn-tonal:hover { box-shadow: var(--m3-elev1); }
 
-/* ---------------------------------------------------------------------
-   Botones M3: 40 px, etiqueta 14/20 medium, 24 px de margen (16 con icono)
-   + variante grande (56 px) y morfado de forma al pulsar (M3 Expressive)
-   --------------------------------------------------------------------- */
 .btn { height: 40px; padding: 0 24px; gap: 8px; font: 500 .875rem/1.25rem var(--font-body); letter-spacing: .1px;
   border: none; border-radius: 999px;
   transition: border-radius var(--m3-d-short4) var(--m3-ease), box-shadow var(--m3-d-short4) var(--m3-ease), transform var(--m3-d-short4) var(--m3-ease); }
@@ -86,36 +65,29 @@ html { scroll-behavior: smooth; }
 .btn .material-symbols-rounded { transition: transform var(--m3-d-med2) var(--m3-ease); }
 .btn:hover .material-symbols-rounded { transform: translateY(-1px) scale(1.08); }
 
-/* Outlined */
 .btn-outlined, .btn-outlined:hover, .btn-outlined:active { background: transparent; color: var(--md-primary);
   box-shadow: inset 0 0 0 1px var(--md-outline); }
 .badge-soon.btn-outlined { color: var(--md-on-surface-variant); box-shadow: inset 0 0 0 1px var(--md-outline-variant); height: 40px; padding: 0 24px; font: 500 .875rem var(--font-body); }
-/* Text */
+
 .btn-text, .btn-text:hover, .btn-text:active { background: transparent; color: var(--md-primary); padding: 0 12px; }
-/* Elevated */
+
 .btn-elevated, .btn-elevated:hover { background: var(--md-surface-low); color: var(--md-primary); box-shadow: var(--m3-elev1); }
 .btn-elevated:hover { box-shadow: var(--m3-elev2); }
 .btn[disabled], .btn:disabled { opacity: .38; pointer-events: none; }
 
-/* Iconos de la cabecera: icon buttons de 40 px */
 .theme-toggle, .nav-toggle { width: 40px; height: 40px; border-radius: 50%; color: var(--md-on-surface-variant); }
 .theme-toggle .material-symbols-rounded { transition: transform var(--m3-d-long2) var(--m3-ease); }
 .theme-toggle:active .material-symbols-rounded { transform: rotate(120deg) scale(.8); }
 
-/* Enlaces de navegación: indicador "pill" que crece (M3 navigation) */
 .main-nav a { position: relative; transition: background var(--m3-d-short4) var(--m3-ease), color var(--m3-d-short4) var(--m3-ease); }
 .main-nav a.is-active { animation: m3-pill var(--m3-d-med4) var(--m3-ease-decel); }
 @keyframes m3-pill { from { transform: scaleX(.86); } to { transform: scaleX(1); } }
 
-/* ---------------------------------------------------------------------
-   Revelado al hacer scroll (fade-through + translate emphasized)
-   --------------------------------------------------------------------- */
 .js-reveal .m3-reveal { opacity: 0; transform: translateY(28px) scale(.985);
   transition: opacity var(--m3-d-long2) var(--m3-ease-decel), transform var(--m3-d-long4) var(--m3-ease-decel);
   transition-delay: calc(var(--i, 0) * 60ms); will-change: opacity, transform; }
 .js-reveal .m3-reveal.is-in { opacity: 1; transform: none; }
 
-/* Tarjetas: capa de estado y elevación al pasar el cursor */
 .feature-card { transition: background var(--m3-d-short4) var(--m3-ease); border-radius: 16px; }
 .feature-card:hover { background: color-mix(in srgb, var(--md-on-surface) 5%, transparent); }
 .feature-icon-badge { transition: border-radius var(--m3-d-med4) var(--m3-ease), transform var(--m3-d-med4) var(--m3-ease); }
@@ -123,9 +95,6 @@ html { scroll-behavior: smooth; }
 .download-card { transition: box-shadow var(--m3-d-med2) var(--m3-ease), transform var(--m3-d-med2) var(--m3-ease); }
 .download-grid > .download-card:not(.download-card-soon):hover { box-shadow: var(--m3-elev2); transform: translateY(-2px); }
 
-/* ---------------------------------------------------------------------
-   Chips de filtro (M3 filter chip con check animado)
-   --------------------------------------------------------------------- */
 .m3-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
 .m3-chip { height: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; border: none; border-radius: 8px;
   background: transparent; color: var(--md-on-surface-variant); font: 500 .875rem/1.25rem var(--font-body); letter-spacing: .1px; cursor: pointer;
@@ -136,9 +105,6 @@ html { scroll-behavior: smooth; }
 .m3-chip.is-selected { background: var(--md-secondary-container); color: var(--md-on-secondary-container); box-shadow: none; padding-left: 8px; }
 .m3-chip.is-selected .m3-chip-check { width: 18px; opacity: 1; margin-right: 0; }
 
-/* ---------------------------------------------------------------------
-   Botón segmentado (M3 segmented button)
-   --------------------------------------------------------------------- */
 .m3-seg { display: inline-flex; margin: 0 0 24px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--md-outline); overflow: hidden; }
 .m3-seg-btn { height: 40px; display: inline-flex; align-items: center; gap: 8px; padding: 0 20px; border: none; background: transparent;
   color: var(--md-on-surface); font: 500 .875rem/1.25rem var(--font-body); letter-spacing: .1px; cursor: pointer;
@@ -149,9 +115,6 @@ html { scroll-behavior: smooth; }
 .m3-seg-btn.is-selected { background: var(--md-secondary-container); color: var(--md-on-secondary-container); padding-left: 14px; }
 .m3-seg-btn.is-selected .m3-seg-check { width: 18px; opacity: 1; margin-right: 0; }
 
-/* ---------------------------------------------------------------------
-   Icon buttons (tonal, 48 px de área táctil)
-   --------------------------------------------------------------------- */
 .m3-iconbtn { width: 48px; height: 48px; display: inline-grid; place-items: center; border: none; border-radius: 50%; cursor: pointer;
   background: transparent; color: var(--md-on-surface-variant);
   transition: border-radius var(--m3-d-short4) var(--m3-ease), transform var(--m3-d-short4) var(--m3-ease); }
@@ -160,9 +123,6 @@ html { scroll-behavior: smooth; }
 .m3-iconbtn .material-symbols-rounded { font-size: 24px; }
 .m3-iconbtn[disabled] { opacity: .38; pointer-events: none; }
 
-/* ---------------------------------------------------------------------
-   FAB extendido: aparece tras el hero; se contrae al bajar y se extiende al subir
-   --------------------------------------------------------------------- */
 .m3-fab { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 90; height: 56px; min-width: 56px;
   display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 0 16px; border-radius: 16px;
   background: var(--md-primary-container); color: var(--md-on-primary-container); text-decoration: none;
@@ -180,9 +140,6 @@ html { scroll-behavior: smooth; }
 .m3-fab.is-collapsed .m3-fab-label { max-width: 0; opacity: 0; }
 .m3-fab:not(.is-collapsed) { padding: 0 20px 0 16px; }
 
-/* ---------------------------------------------------------------------
-   Snackbar
-   --------------------------------------------------------------------- */
 .m3-snackbar { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); z-index: 130; min-height: 48px; max-width: min(560px, calc(100vw - 32px));
   display: flex; align-items: center; padding: 0 16px; border-radius: 4px; background: var(--md-on-surface); color: var(--md-surface);
   font: 400 .875rem/1.25rem var(--font-body); letter-spacing: .25px; box-shadow: var(--m3-elev3);
@@ -190,9 +147,6 @@ html { scroll-behavior: smooth; }
   transition: transform var(--m3-d-med2) var(--m3-ease-decel), opacity var(--m3-d-short4) linear; }
 .m3-snackbar.is-open { transform: translate(-50%, 0); opacity: 1; }
 
-/* ---------------------------------------------------------------------
-   Carrusel M3 (hero + multi-browse) arrastrable
-   --------------------------------------------------------------------- */
 .showcase { overflow: hidden; }
 .m3car { --item-w: clamp(210px, 22vw, 270px); --gap: 20px; position: relative; display: flex; gap: var(--gap); overflow-x: auto; overflow-y: hidden;
   padding: 24px 0 36px; scroll-snap-type: x mandatory; scrollbar-width: none; cursor: grab; outline: none; overscroll-behavior-x: contain;
@@ -221,9 +175,6 @@ html { scroll-behavior: smooth; }
 .m3-progress span { display: block; height: 100%; width: 16.66%; border-radius: 2px; background: var(--md-primary);
   transition: transform var(--m3-d-long2) var(--m3-ease), width var(--m3-d-long2) var(--m3-ease); }
 
-/* ---------------------------------------------------------------------
-   Sección PC: imagen principal + escritorio de ventanas movibles
-   --------------------------------------------------------------------- */
 .pcshots-hero { position: relative; margin: 0 0 56px; aspect-ratio: 16 / 9; border-radius: 28px; overflow: hidden;
   background: var(--md-surface-container); box-shadow: var(--m3-elev2); }
 .pcshots-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.03);
@@ -234,12 +185,11 @@ html { scroll-behavior: smooth; }
 .winlab-head h3 { margin: 0 0 2px; font: 500 1.5rem/2rem var(--font-display); }
 .winlab-head p { margin: 0; color: var(--md-on-surface-variant); font-size: .9rem; max-width: 60ch; }
 
-/* Carrusel de ventanas de escritorio: la central se adelanta, las vecinas asoman y giran hacia ella */
 .m3car { --ov: 0px; }
 .m3car::before, .m3car::after { flex-basis: calc(50% - var(--item-w) / 2 - var(--gap) + var(--ov)); }
 .m3car-item { margin-inline: calc(var(--ov) * -1); }
 .m3car--win { --item-w: min(66vw, 860px); --gap: 0px; --ov: clamp(24px, 6vw, 90px); padding: 40px 0 72px; margin-bottom: 0; }
-/* El pie (contador, título, flechas) siempre por encima de las ventanas, nunca debajo */
+
 .m3car--win + .wrap { position: relative; z-index: 5; }
 .m3car-item.cwin { --s: 0; position: relative; border-radius: 16px; overflow: visible; background: none;
   transform: perspective(1400px) rotateY(calc(var(--s) * -16deg)) scale(calc(1.04 - var(--t) * .26));
@@ -255,7 +205,6 @@ html { scroll-behavior: smooth; }
 .cwin::after { content: ""; position: absolute; inset: 0; border-radius: 16px; pointer-events: none; box-shadow: 0 0 0 1px rgba(255,255,255,.10), 0 18px 34px -16px rgba(0,0,0,.6); }
 .cwin.is-active::after { box-shadow: 0 0 0 1px rgba(255,255,255,.18), 0 26px 44px -20px color-mix(in srgb, var(--md-primary) 40%, #000); }
 
-/* Iconos de funciones: formas M3 Expressive propias (variadas) en la paleta azul del sitio */
 :root {
   --m3-s1: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Cpolygon%20points%3D%2788.81%2C59.68%2086.99%2C66.92%2086.21%2C69.92%2085.58%2C72.20%2085.01%2C74.11%2084.48%2C75.78%2083.97%2C77.27%2083.47%2C78.62%2082.97%2C79.86%2082.47%2C81.01%2081.96%2C82.08%2081.45%2C83.07%2080.92%2C84.00%2080.39%2C84.87%2079.84%2C85.69%2079.28%2C86.45%2078.70%2C87.16%2078.10%2C87.83%2077.49%2C88.46%2076.86%2C89.04%2076.21%2C89.59%2075.54%2C90.09%2074.85%2C90.56%2074.14%2C90.98%2073.41%2C91.37%2072.65%2C91.73%2071.86%2C92.05%2071.05%2C92.33%2070.21%2C92.58%2069.34%2C92.79%2068.44%2C92.96%2067.50%2C93.10%2066.52%2C93.20%2065.50%2C93.27%2064.44%2C93.29%2063.32%2C93.28%2062.14%2C93.23%2060.89%2C93.13%2059.56%2C92.99%2058.13%2C92.80%2056.57%2C92.55%2054.85%2C92.23%2052.90%2C91.83%2050.59%2C91.32%2047.58%2C90.61%2040.32%2C88.81%2033.08%2C86.99%2030.08%2C86.21%2027.80%2C85.58%2025.89%2C85.01%2024.22%2C84.48%2022.73%2C83.97%2021.38%2C83.47%2020.14%2C82.97%2018.99%2C82.47%2017.92%2C81.96%2016.93%2C81.45%2016.00%2C80.92%2015.13%2C80.39%2014.31%2C79.84%2013.55%2C79.28%2012.84%2C78.70%2012.17%2C78.10%2011.54%2C77.49%2010.96%2C76.86%2010.41%2C76.21%209.91%2C75.54%209.44%2C74.85%209.02%2C74.14%208.63%2C73.41%208.27%2C72.65%207.95%2C71.86%207.67%2C71.05%207.42%2C70.21%207.21%2C69.34%207.04%2C68.44%206.90%2C67.50%206.80%2C66.52%206.73%2C65.50%206.71%2C64.44%206.72%2C63.32%206.77%2C62.14%206.87%2C60.89%207.01%2C59.56%207.20%2C58.13%207.45%2C56.57%207.77%2C54.85%208.17%2C52.90%208.68%2C50.59%209.39%2C47.58%2011.19%2C40.32%2013.01%2C33.08%2013.79%2C30.08%2014.42%2C27.80%2014.99%2C25.89%2015.52%2C24.22%2016.03%2C22.73%2016.53%2C21.38%2017.03%2C20.14%2017.53%2C18.99%2018.04%2C17.92%2018.55%2C16.93%2019.08%2C16.00%2019.61%2C15.13%2020.16%2C14.31%2020.72%2C13.55%2021.30%2C12.84%2021.90%2C12.17%2022.51%2C11.54%2023.14%2C10.96%2023.79%2C10.41%2024.46%2C9.91%2025.15%2C9.44%2025.86%2C9.02%2026.59%2C8.63%2027.35%2C8.27%2028.14%2C7.95%2028.95%2C7.67%2029.79%2C7.42%2030.66%2C7.21%2031.56%2C7.04%2032.50%2C6.90%2033.48%2C6.80%2034.50%2C6.73%2035.56%2C6.71%2036.68%2C6.72%2037.86%2C6.77%2039.11%2C6.87%2040.44%2C7.01%2041.87%2C7.20%2043.43%2C7.45%2045.15%2C7.77%2047.10%2C8.17%2049.41%2C8.68%2052.42%2C9.39%2059.68%2C11.19%2066.92%2C13.01%2069.92%2C13.79%2072.20%2C14.42%2074.11%2C14.99%2075.78%2C15.52%2077.27%2C16.03%2078.62%2C16.53%2079.86%2C17.03%2081.01%2C17.53%2082.08%2C18.04%2083.07%2C18.55%2084.00%2C19.08%2084.87%2C19.61%2085.69%2C20.16%2086.45%2C20.72%2087.16%2C21.30%2087.83%2C21.90%2088.46%2C22.51%2089.04%2C23.14%2089.59%2C23.79%2090.09%2C24.46%2090.56%2C25.15%2090.98%2C25.86%2091.37%2C26.59%2091.73%2C27.35%2092.05%2C28.14%2092.33%2C28.95%2092.58%2C29.79%2092.79%2C30.66%2092.96%2C31.56%2093.10%2C32.50%2093.20%2C33.48%2093.27%2C34.50%2093.29%2C35.56%2093.28%2C36.68%2093.23%2C37.86%2093.13%2C39.11%2092.99%2C40.44%2092.80%2C41.87%2092.55%2C43.43%2092.23%2C45.15%2091.83%2C47.10%2091.32%2C49.41%2090.61%2C52.42%27%20fill%3D%27black%27%20stroke%3D%27black%27%20stroke-width%3D%274%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E");
   --m3-s2: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Cpolygon%20points%3D%2750.00%2C17.00%2083.00%2C50.00%2050.00%2C83.00%2017.00%2C50.00%27%20fill%3D%27black%27%20stroke%3D%27black%27%20stroke-width%3D%2718%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E");
@@ -266,7 +215,7 @@ html { scroll-behavior: smooth; }
   --m3-s7: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Cpolygon%20points%3D%2750.00%2C20.00%2084.00%2C78.00%2016.00%2C78.00%27%20fill%3D%27black%27%20stroke%3D%27black%27%20stroke-width%3D%2716%27%20stroke-linejoin%3D%27round%27%2F%3E%3C%2Fsvg%3E");
   --m3-s8: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Crect%20x%3D%2730%27%20y%3D%2710%27%20width%3D%2740%27%20height%3D%2780%27%20rx%3D%2720%27%20fill%3D%27black%27%20transform%3D%27rotate%2835%2050%2050%29%27%2F%3E%3C%2Fsvg%3E");
 }
-/* Paleta azul de FrikiMusic: cada icono usa un tono distinto de la misma familia */
+
 :root { --t1c:#284777; --t1o:#d6e3ff; --t2c:#383d7c; --t2o:#e0e0ff; --t3c:#3e4759; --t3o:#dae2f9; --t4c:#164b6e; --t4o:#c8e6ff; --t5c:#4b3f78; --t5o:#eaddff; }
 :root[data-theme="light"] { --t1c:#d6e3ff; --t1o:#001b3e; --t2c:#e0e0ff; --t2o:#00105c; --t3c:#dae2f9; --t3o:#131c2b; --t4c:#c8e6ff; --t4o:#001e2f; --t5c:#eaddff; --t5o:#21005d; }
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --t1c:#d6e3ff; --t1o:#001b3e; --t2c:#e0e0ff; --t2o:#00105c; --t3c:#dae2f9; --t3o:#131c2b; --t4c:#c8e6ff; --t4o:#001e2f; --t5c:#eaddff; --t5o:#21005d; } }
@@ -286,9 +235,6 @@ html { scroll-behavior: smooth; }
 .feature-card:hover .feature-icon-badge { border-radius: 0; transform: none; }
 .feature-card:hover .feature-icon-badge::before { transform: rotate(24deg) scale(1.06); }
 
-/* ---------------------------------------------------------------------
-   Responsive
-   --------------------------------------------------------------------- */
 @media (max-width: 760px) {
   .m3car { --item-w: min(64vw, 260px); --gap: 14px; }
   .m3car-foot { flex-direction: column; align-items: stretch; }
@@ -308,12 +254,8 @@ html { scroll-behavior: smooth; }
   .m3-fab, .m3-snackbar, .pcshots-hero img { transition-duration: .01ms; }
 }
 
-/* Evita scroll horizontal por elementos decorativos fuera de pantalla */
 body { overflow-x: clip; }
 
-/* =====================================================================
-   Visor de imágenes (lightbox): toca una captura para verla en grande
-   ===================================================================== */
 .m3car-item img, .m3car-item.is-active { -webkit-touch-callout: none; }
 .m3car-item { position: relative; }
 .m3car-item.is-active, .pcshots-hero { cursor: zoom-in; }
@@ -358,27 +300,22 @@ html.lb-open, html.lb-open body { overflow: hidden; }
 .lb.is-single .lb-nav { display: none; }
 
 @media (max-width: 760px) {
-  /* En teléfono las flechas estorban: se pasa con el dedo (siguen disponibles, más pequeñas) */
+
   .lb-nav { top: auto; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); margin-top: 0; width: 44px; height: 44px; background: rgba(0,0,0,.45); }
   .lb-cap span { -webkit-line-clamp: 3; font-size: .78rem; }
 }
 @media (prefers-reduced-motion: reduce) { .lb, .m3car-zoom, .lb-stage img { animation: none; transition-duration: .01ms; } }
 
-/* =====================================================================
-   Ajustes para teléfono
-   ===================================================================== */
-/* Etiqueta "Versión para PC": que pueda ocupar dos líneas sin salirse del borde */
 .hero-pc { height: auto; min-height: 32px; padding: 6px 12px; align-items: center; line-height: 1.3; max-width: 100%; }
 .hero-pc > span:last-child { min-width: 0; }
 
-/* El menú móvil no debe quedar bajo el notch ni más largo que la pantalla */
 .mobile-nav { max-height: calc(100dvh - var(--header-h, 64px)); overflow-y: auto; }
-/* El diálogo de soporte usa la altura visible real (barra de direcciones del móvil) */
+
 .support-modal { max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px); overscroll-behavior: contain; }
-.support-field input, .support-field textarea { font-size: 16px; } /* evita el zoom automático de iOS al enfocar */
+.support-field input, .support-field textarea { font-size: 16px; }
 
 @media (max-width: 760px) {
-  /* Filtros de pantallas: una sola fila deslizable en vez de 5 filas apiladas */
+
   .m3-chips { flex-wrap: nowrap; overflow-x: auto; margin: 0 -18px 20px; padding: 2px 18px 6px; gap: 8px; scrollbar-width: none;
     scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
   .m3-chips::-webkit-scrollbar { display: none; }
@@ -417,7 +354,7 @@ html.lb-open, html.lb-open body { overflow: hidden; }
   .hero-actions .btn { justify-content: center; }
   .m3-seg-btn { padding: 0 6px; font-size: .74rem; gap: 4px; }
 }
-/* Pantallas bajas en horizontal */
+
 @media (max-height: 480px) and (orientation: landscape) {
   .lb-cap span { display: none; } .lb-cap { padding-top: 4px; }
   .lb-nav { top: 50%; bottom: auto; margin-top: -22px; }

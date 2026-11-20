@@ -1,4 +1,4 @@
-// ID fijo de la extensión (campo "key" del manifest.json)
+
 export const EXT = "ejodfoofmpcpikknldogdcpfipmkbmhn";
 import { isNative, nativeBridge } from "./native.js";
 export const bridge = (method, params) => isNative ? nativeBridge(method, params) : new Promise((ok, no) => {

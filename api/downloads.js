@@ -55,7 +55,7 @@ module.exports = async function handler(req, res) {
             win.release = release;
             win.asset = asset;
           } else if (win.release === release && /\.msi$/i.test(win.asset.name) && /\.exe$/i.test(asset.name)) {
-            // En la misma release se prefiere el instalador .exe frente al .msi
+
             win.asset = asset;
           }
         }
@@ -87,7 +87,7 @@ module.exports = async function handler(req, res) {
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=3600');
     res.status(200).json(payload);
   } catch (err) {
-    // Si la API de GitHub falla (límite de peticiones), se devuelve al menos el instalador de Windows
+
     try {
       var w = await findWindows();
       res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=600');

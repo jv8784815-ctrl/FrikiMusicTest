@@ -1,4 +1,4 @@
-// Página de Ajustes + sus controles. Cada control lleva data-set="clave"; las claves con punto ("home.feed") son anidadas.
+
 import { S, DEF, FONTS, save, mergeCfg, applyTheme } from "./store.js";
 import { VS, setQuality, refresh as refreshVideo } from "./video.js";
 import { AQ, setAudioQuality } from "./player.js";
@@ -85,13 +85,12 @@ export function settings() {
         <input type="file" id="impFile" accept=".json,application/json" hidden></section>`;
 }
 
-// Enlaza los controles. redraw() vuelve a pintar la vista; rail() la barra lateral; toast(msg) avisa.
 export function bindSettings({ redraw, rail, toast }) {
   const apply = k => { applyTheme(); if (k === "video") refreshVideo(); if (k === "rail") rail(); if (k === "miniAuto") setAutoMini(); if (k.startsWith("mini")) refreshMini(); };
   document.addEventListener("click", e => {
     const b = e.target.closest("button[data-set]");
     if (b) { const k = b.dataset.set; set(k, b.hasAttribute("data-toggle") ? !get(k) : parse(b.dataset.val)); apply(k); redraw(); return; }
-    // Color personalizado: al tocarlo ya queda seleccionado (sin redibujar, para no cerrar el selector)
+
     const c = e.target.closest(".cust");
     if (c && S.accent !== "custom") { set("accent", "custom"); applyTheme(); c.parentElement.querySelectorAll(".on").forEach(x => x.classList.remove("on")); c.classList.add("on"); c.style.background = S.cfg.customColor; }
     const d = e.target.closest("[data-do]"); if (d) action(d.dataset.do);

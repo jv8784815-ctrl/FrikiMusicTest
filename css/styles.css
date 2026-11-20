@@ -224,7 +224,7 @@ img {
 .brand-mark {
   width: 32px;
   height: 32px;
-  border-radius: 22.4%;   /* misma forma que el icono de la app */
+  border-radius: 22.4%;
   background: transparent;
   display: grid;
   place-items: center;
@@ -1399,8 +1399,6 @@ img {
   margin: 0;
 }
 
-
-/* ===== Animación: cuatro trazos dibujan el símbolo de FrikiMusic ===== */
 .pcs {
   position: relative;
   padding: 56px 0 80px;
@@ -1451,7 +1449,6 @@ img {
 @keyframes pcsBlobA { to { transform: translate(70px, 50px) scale(1.15); } }
 @keyframes pcsBlobB { to { transform: translate(-60px, -40px) scale(0.85); } }
 
-/* Iconos neón */
 .pcs-app {
   position: absolute;
   left: 0;
@@ -1474,7 +1471,6 @@ img {
   pointer-events: none;
 }
 
-/* Símbolo フ que se dibuja con los cuatro trazos */
 .pcs-glyph {
   position: absolute;
   left: 50%;
@@ -1533,7 +1529,6 @@ img {
 @keyframes pcsSheen { from { background-position: 100% 0; } to { background-position: 0 0; } }
 @keyframes pcsBreath { from { opacity: 0.1; } to { opacity: 0.9; } }
 
-/* Marca y botones al final */
 .pcs-lockup {
   margin-top: 26px;
   display: flex;
@@ -1561,7 +1556,6 @@ img {
 .pcs-soon { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--text-muted); }
 .pcs-soon .material-symbols-rounded { font-size: 16px; }
 
-/* Aviso en el hero */
 .hero-pc {
   display: inline-flex;
   align-items: center;
@@ -1589,9 +1583,6 @@ img {
   .pcs-os { justify-content: center; }
 }
 
-
-
-/* ===== Capturas de la versión de PC (huecos por rellenar) ===== */
 .pcshots {
   padding: 96px 0;
   border-top: 1px solid var(--outline-soft);

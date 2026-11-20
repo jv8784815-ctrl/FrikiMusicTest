@@ -1,5 +1,5 @@
-// Color ambiental a partir de la portada (como ArtworkMeshBackdrop en escritorio):
-// --amb = color medio, --m1..--m4 = esquinas de la portada (fondo en malla del reproductor grande)
+
+
 import { hq } from "./img.js";
 import { S, dyn, applyTheme } from "./store.js";
 let last = "";

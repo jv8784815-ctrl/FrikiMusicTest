@@ -1,8 +1,7 @@
-// Letras al estilo BitChord (web/app/src/lyrics): modelo, lectores de formatos y proveedores.
-// Cada proveedor devuelve { lines, ttml } o null; ninguno lanza excepciones.
+
+
 import { bridge } from "./bridge.js";
 
-// ---- Modelo (LyricLine.kt) ---------------------------------------------------------------
 export const line = (timeMs, text, extra = {}) => ({ timeMs, text, words: [], sungUntilMs: null, background: null, alignment: "start", ...extra });
 export const isGap = l => l.text.length === 0;
 const hasKnownEnd = l => l.words.length > 0 || l.sungUntilMs !== null;
@@ -17,7 +16,7 @@ function normalizedSyllables(parts, length) {
 }
 const UNSPACED = /[㐀-鿿぀-ヿ　-〿＀-￯฀-๿]/;
 const isWs = c => c !== undefined && /\s/.test(c);
-// Une trozos con tiempo en palabras (SyllableRuns.kt)
+
 function wordsFromRuns(runs, spacingIsExplicit = false) {
   const glue = spacingIsExplicit || runs.some(r => /\s/.test(r.raw));
   const words = []; let cur = "", parts = [], start = 0, end = 0;
@@ -51,7 +50,7 @@ function withInstrumentalGaps(lines) {
   });
   return out;
 }
-// "(respuesta)" al final de la línea -> voz de fondo (BackgroundVocals.kt)
+
 function bracketStart(text) {
   if (!text.endsWith(")")) return null;
   let depth = 0;
@@ -78,7 +77,7 @@ function withBackgroundVocals(lines) {
     return { ...l, text: lead, words: l.words.slice(0, split), background: line(bw[0].startMs, backing, { words: bw }) };
   });
 }
-// Quién canta cada línea: alterna izquierda/derecha según cambia la voz (LyricAlignments.kt)
+
 function lineAlignments(singers, types) {
   let left = true, last = null, right = 0, placed = 0;
   const sides = singers.map(s => {
@@ -94,7 +93,6 @@ function lineAlignments(singers, types) {
   return sides.map(s => s === "start" ? "end" : "start");
 }
 
-// ---- Lectores de formatos (TTML, LRC con palabras, LRC, texto) ------------------------------
 const cp = (e, v) => v <= 0x10ffff ? String.fromCodePoint(v) : e;
 const decodeEntities = t => !t.includes("&") ? t : t.replace(/&#x([0-9a-fA-F]+);/g, (e, h) => cp(e, parseInt(h, 16))).replace(/&#(\d+);/g, (e, d) => cp(e, +d))
   .replace(/&apos;/g, "'").replace(/&quot;/g, '"').replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
@@ -230,8 +228,6 @@ function parseProvider(raw) {
   return lines.some(l => l.text.trim()) ? { lines } : null;
 }
 
-// ---- Red: directo desde la página; si el navegador lo bloquea (CORS), por la extensión ------
-// Rastro de la última búsqueda: qué respondió cada host (se enseña en el panel cuando no hay letras)
 export const trace = [];
 const note = (url, what) => { try { const u = new URL(url); trace.push(`${u.hostname}${u.pathname.length > 1 ? u.pathname : ""}${u.search ? decodeURIComponent(u.search).slice(0, 150) : ""}\n    -> ${what}`); } catch {} };
 async function viaExtension(url) {
@@ -245,7 +241,7 @@ async function get(url) {
     if (r.status === 401 || r.status === 403) return viaExtension(url);
     return r.ok ? await r.text() : null;
   } catch (e) {
-    // Un rechazo por CORS parece un error de red desde aquí; la extensión no está sujeta a CORS
+
     if (e instanceof TypeError) { note(url, "directo bloqueado (CORS/red), probando por la extensión"); return viaExtension(url); }
     note(url, "tiempo agotado"); return null;
   }
@@ -256,7 +252,6 @@ const secs = ms => ms > 0 ? Math.floor(ms / 1000) : null;
 const fromTtml = t => { if (!t) return null; const lines = parseTtml(t); return lines.length ? { lines } : null; };
 const fromLines = l => l?.some(x => x.text.trim()) ? { lines: l } : null;
 
-// ---- Proveedores ----------------------------------------------------------------------------
 const LRC_RED = "https://lrc.red/", ISRC = /^[A-Z]{2}[A-Z0-9]{3}\d{7}$/;
 const lrcRedDoc = isrc => { const c = isrc?.trim().toUpperCase(); return c && ISRC.test(c) ? `${LRC_RED}s/${c}.ttml` : null; };
 const VERSION_WORDS = new Set(["live", "remix", "remixed", "mix", "acoustic", "unplugged", "instrumental", "karaoke", "cappella", "acapella", "demo", "edit", "version", "cover", "sped", "slowed", "reverb", "nightcore", "lofi", "orchestral", "extended"]);
@@ -279,7 +274,7 @@ async function lrcRed(q, doc) {
   const url = lrcRedDoc(bestLrcRedHit(body?.hits ?? [], q.title, q.artist, q.durationMs)?.isrc);
   return url && url !== known ? fromTtml(await doc(url)) : null;
 }
-// Pares título/artista a probar, de más a menos probable: limpio; con el invitado como artista; título original; primer artista
+
 function nameVariants(q) {
   const v = [{ title: q.title, artist: q.artist }];
   if (q.feat) {
@@ -303,7 +298,7 @@ async function betterLyrics(q) {
   const body = await get(urlWith("https://lyrics-api.boidu.dev/getLyrics", { s: q.title, a: q.artist, d: secs(q.durationMs), al: q.album }));
   return body ? parseProvider(body) : null;
 }
-// BetterLyrics también indexa letras karaoke de QQ Music (el proveedor Portato de BitChord).
+
 async function betterLyricsPortato(q) {
   const body = await get(urlWith("https://lyrics-api.boidu.dev/qq/getLyrics", { s: q.title, a: q.artist, d: secs(q.durationMs), al: q.album }));
   return body ? parseProvider(body) : null;
@@ -335,7 +330,7 @@ function parseLyricsPlus(r) {
   return withInstrumentalGaps(sung.map((s, i) => ({ ...s.line, alignment: sides[i] === "end" || (Array.isArray(s.element) && s.element.some(t => t === "opposite" || t === "right")) ? "end" : "start" })));
 }
 const firstArtist = a => a.split(ARTIST_SEP)[0].trim() || a;
-// Varias consultas, de más a menos estricta: completa; sin álbum/duración; solo el primer artista. Gana la primera con letras.
+
 async function lyricsPlus(q) {
   const hosts = goodMirror ? [goodMirror, ...MIRRORS.filter(m => m !== goodMirror)] : MIRRORS;
   const variants = [
@@ -368,7 +363,6 @@ async function lrclib(q) {
   return synced ? fromLines(parseLrc(synced)) : null;
 }
 
-// ---- Orden de proveedores (LyricsSource.kt) y limpieza de título (LyricsQuery.kt) ------------
 export const SOURCES = [
   { id: "lrc-red", label: "lrc.red", detail: "Tiempos de Apple, sílaba a sílaba" },
   { id: "bini", label: "BiniLyrics", detail: "Tiempos de Apple por grabación" },
@@ -382,11 +376,11 @@ const CREDITS = [/\s*[([]\s*(feat|ft|featuring|with)\b[^)\]]*[)\]]/gi, /\s+(feat
   /\s*[([]\s*(official\s*)?(music\s*)?(video|audio|visuali[sz]er|lyrics?\s*video|lyrics?|m\/?v|hd|hq|4k|full\s*song)\s*[)\]]/gi, /\s*[([]\s*official\s*[)\]]/gi];
 const forSearch = t => { let n = t; for (const p of CREDITS) n = n.replace(p, " "); return n.replace(/\s+/g, " ").trim().replace(/[,\-–—]+$/, "").trim() || t.trim(); };
 const artistForSearch = a => a.replace(/ - Topic$/, "").trim() || a.trim();
-// "3:45" al final del texto de la canción (la búsqueda de YouTube Music lo trae en `meta`)
+
 export const durationMs = meta => { const m = /(\d+):(\d{2})(?::(\d{2}))?\s*$/.exec(meta || ""); return m ? (m[3] ? (+m[1] * 3600 + +m[2] * 60 + +m[3]) : (+m[1] * 60 + +m[2])) * 1000 : 0; };
 
 const CREDIT = /[([]\s*(?:feat|ft|featuring|with|con|avec|mit|com)\.?\s+([^)\]]+)[)\]]/i, CREDIT_G = new RegExp(CREDIT.source, "gi");
-// Nombres japoneses de vocaloids: las bases de letras suelen indexarlos así
+
 const JP = { "hatsune miku": "初音ミク", "kasane teto": "重音テト", "kagamine rin": "鏡音リン", "kagamine len": "鏡音レン", "megurine luka": "巡音ルカ" };
 const withTimeout = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(null), ms))]);
 const cache = new Map();
@@ -394,15 +388,14 @@ function toResult(source, parsed) {
   const lines = withBackgroundVocals(parsed.lines);
   return { source, label: SOURCES.find(s => s.id === source)?.label ?? source, lines, wordSynced: lines.some(l => l.words.length), synced: lines.some(l => l.timeMs > 0 || l.words.length) };
 }
-// Se pregunta a todos a la vez pero se respeta la prioridad: uno inferior que termina antes no adelanta a uno superior pendiente.
-// Una respuesta con palabras gana al instante; si no, gana la mejor con tiempos.
+
 export async function lookupLyrics(song, { only, onSource } = {}) {
   const sequence = only ? [only] : SOURCES.map(s => s.id);
   const dur = song.durationMs || durationMs(song.meta);
   trace.length = 0;
   const key = `${song.id}|${dur}|${only ?? ""}`;
   const hit = cache.get(key); if (hit && Date.now() - hit.at < 12 * 3600e3) return hit.result;
-  // YouTube traduce "feat." según el idioma ("con", "avec", "mit"...): se reconocen todos
+
   const feat = CREDIT.exec(song.title)?.[1]?.trim() || null;
   const q = { rawTitle: song.title.trim(), feat, title: forSearch(song.title.replace(CREDIT_G, " ")), artist: artistForSearch(song.artist), durationMs: dur, album: song.album || null, isrc: null };
   let ident = null;
@@ -418,7 +411,7 @@ export async function lookupLyrics(song, { only, onSource } = {}) {
     plain ??= f;
   }
   winner ??= plain;
-  // Un fallo no se recuerda: puede deberse a un permiso o a una red que ya se arregló
+
   if (winner) cache.set(key, { at: Date.now(), result: winner });
   return winner;
 }

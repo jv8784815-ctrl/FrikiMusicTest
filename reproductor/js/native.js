@@ -1,15 +1,13 @@
-// Puente para la app Android (Capacitor): hace lo mismo que la extensión de Chrome, pero con HTTP nativo.
-// Las peticiones nativas no tienen CORS y permiten poner Origin/Referer, así que no hace falta extensión ni servidor.
-// Sin sesión de YouTube: las búsquedas y el inicio funcionan en modo anónimo.
+
+
 export const isNative = !!globalThis.Capacitor?.isNativePlatform?.();
-if (isNative) { const m = document.createElement("meta"); m.name = "referrer"; m.content = "no-referrer"; document.head.append(m); } // las URLs de audio dan 403 con Referer
+if (isNative) { const m = document.createElement("meta"); m.name = "referrer"; m.content = "no-referrer"; document.head.append(m); }
 
 const YT = "https://music.youtube.com", WWW = "https://www.youtube.com";
 const SONGS = "EgWKAQIIAWoMEA4QChADEAQQCRAF";
 const WEB = { client: { clientName: "WEB_REMIX", clientVersion: "1.20260818.08.00", hl: "en", gl: "US" } };
 const SAFE = new Set(["accept", "accept-language", "content-language"]);
 
-// fetch nativo: mismo contrato que fetch(), pasando por el plugin CapacitorHttp
 export async function nfetch(input, init = {}) {
   const req = input instanceof Request ? input : null;
   const url = new URL(req ? req.url : input.toString());
@@ -18,7 +16,7 @@ export async function nfetch(input, init = {}) {
   new Headers(init.headers ?? req?.headers).forEach((v, k) => SAFE.has(k.toLowerCase()) && (headers[k] = v));
   let body = init.body;
   if (body === undefined && req && method !== "GET" && method !== "HEAD") body = await req.text();
-  if (body != null) headers["Content-Type"] = "text/plain;charset=UTF-8"; // como en la web de escritorio: YouTube lo acepta y evita el JSON doble
+  if (body != null) headers["Content-Type"] = "text/plain;charset=UTF-8";
   const origin = { "music.youtube.com": YT, "www.youtube.com": WWW }[url.hostname];
   if (origin && url.pathname.startsWith("/youtubei/")) Object.assign(headers, { Origin: origin, Referer: origin + "/", "X-Origin": origin });
   const http = globalThis.Capacitor?.Plugins?.CapacitorHttp;
@@ -33,13 +31,13 @@ const runs = c => c?.musicResponsiveListItemFlexColumnRenderer?.text?.runs || []
 
 const VIDEOS = "EgWKAQIQAWoMEA4QChADEAQQCRAF";
 const TYPE = x => x?.watchEndpoint?.watchEndpointMusicSupportedConfigs?.watchEndpointMusicConfig?.musicVideoType || "";
-// ATV = pista de audio de álbum; OMV/UGC/OFFICIAL_SOURCE_MUSIC = videoclip o vídeo subido
+
 const isVideo = t => !!t && t !== "MUSIC_VIDEO_TYPE_ATV";
 const KIND = /^(song|video|canción|cancion|vídeo|single|ep|álbum|album)$/i;
 const thumb = th => th?.at(-1)?.url || "";
 const cover = (th, id) => thumb(th) || (id ? `https://i.ytimg.com/vi/${encodeURIComponent(id)}/hqdefault.jpg` : "");
 const runArtistId = rs => (rs || []).map(r => r.navigationEndpoint?.browseEndpoint?.browseId || r.endpoint?.payload?.browseId).find(id => typeof id === "string" && id.startsWith("UC")) || "";
-// "Canción • Artista1 & Artista2 • Álbum • 3:45" -> ["Artista1 & Artista2", "Álbum", "3:45"] (se parte solo por "•")
+
 function groups(rs) {
   const out = [""];
   for (const r of rs) { if (r.text.trim() === "•") out.push(""); else out[out.length - 1] += r.text; }
@@ -48,7 +46,7 @@ function groups(rs) {
   return g;
 }
 function subtitle(rs) { const g = groups(rs); return { artist: g[0] || "", meta: g.slice(1).join(" · ") }; }
-// Fila de lista (búsqueda, selecciones rápidas)
+
 function listItem(x) {
   const id = x.playlistItemData?.videoId; if (!id) return null;
   const type = TYPE(x.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint)
@@ -58,7 +56,7 @@ function listItem(x) {
   const timed = /^\d+:\d{2}/.test(g.at(-1) || "");
   return { id, title: runs(x.flexColumns[0]).map(t => t.text).join(""), artist: g[0] || "", artistId, meta: g.slice(1).join(" · "), album: timed && g.length > 2 ? g[1] : null, cover: cover(x.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails, id), video: isVideo(type) };
 }
-// Tarjeta de carrusel (inicio)
+
 function cardItem(x) {
   const ep = x.navigationEndpoint, id = ep?.watchEndpoint?.videoId; if (!id) return null;
   const { artist, meta } = subtitle(x.subtitle?.runs || []);
@@ -72,7 +70,7 @@ const post = async (path, body, query = "") => {
 async function searchOne(query, params) {
   return walk(await post("search", { query, params }), "musicResponsiveListItemRenderer").map(listItem).filter(Boolean).map(item => params === VIDEOS ? { ...item, video: true } : item);
 }
-// Canciones y vídeos juntos, alternados; los vídeos llevan video:true para la insignia
+
 async function search({ query }) {
   const [songs, vids] = await Promise.all([searchOne(query, SONGS), searchOne(query, VIDEOS).catch(() => [])]);
   const seen = new Set(), out = [];
@@ -120,7 +118,6 @@ async function homeRaw() {
   return pages;
 }
 async function home() { return parseHome(await homeRaw()); }
-
 
 const LYRIC_HOSTS = new Set(["lrc.red", "lyrics-api.binimum.org", "lyrics-api.boidu.dev", "unison.boidu.dev", "lyricsplus.prjktla.my.id", "lyricsplus.binimum.org", "lrclib.net"]);
 async function lyrics({ url }) {

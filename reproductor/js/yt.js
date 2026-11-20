@@ -1,5 +1,5 @@
-// Resolución del audio como en BitChord (playback/youtube/innertube.ts y resolver.ts):
-// YouTube.js en la propia página, cliente VISIONOS (URLs directas, sin PO token).
+
+
 import { isNative, nfetch } from "./native.js";
 import { bridge } from "./bridge.js";
 import { Innertube, Platform, UniversalCache, Utils, YT } from "../vendor/youtubei.js";
@@ -7,8 +7,6 @@ import { Innertube, Platform, UniversalCache, Utils, YT } from "../vendor/youtub
 const HOSTS = new Set(["music.youtube.com", "www.youtube.com", "youtube.com"]);
 const SAFE = new Set(["accept", "accept-language", "content-language"]);
 
-// youtubei rechaza el preflight CORS (400): se envía como petición "simple" (text/plain, sin cabeceras propias).
-// La extensión añade Origin, Referer y X-Origin con declarativeNetRequest.
 async function simpleFetch(input, init) {
   if (isNative) return nfetch(input, init);
   const req = input instanceof Request ? input : null;
@@ -113,9 +111,6 @@ export async function fetchHomeFeed(pages = 4) {
   return out;
 }
 
-// Sin adPlaybackContext (con él YouTube corta el audio a los ~70 s, según los docs de BitChord)
-// Clientes en orden de preferencia. VISIONOS da URLs directas sin PO token; los demás son respaldo para vídeos
-// "raros" (The Station, directos, sesiones...) en los que VISIONOS no da audio reproducible.
 const CLIENTS = ["VISIONOS", "ANDROID_VR", "TV", "WEB_EMBEDDED"];
 const hasUrl = f => !!(f.url || f.signature_cipher || f.cipher);
 async function fetchInfo(yt, videoId, client) {
@@ -125,8 +120,7 @@ async function fetchInfo(yt, videoId, client) {
   });
   return new YT.VideoInfo([res], yt.actions, Utils.generateRandomString(16));
 }
-// Fuentes de audio de una respuesta, de mejor a peor: webm/opus, mp4/aac y, como último recurso,
-// el formato combinado (audio+vídeo, itag 18) que siempre se puede abrir en un <audio>.
+
 const AUDIO_TARGET = { high: Infinity, medium: 128000, low: 0 };
 const byQuality = aq => {
   const t = AUDIO_TARGET[aq] ?? Infinity;
@@ -142,21 +136,20 @@ function audioSources(info, yt, aq = "auto") {
   const webm = by("audio/webm"), mp4 = by("audio/mp4");
   const first = can((webm[0] || {}).mime_type || "") || !mp4.length ? [webm[0], mp4[0], webm[1], mp4[1]] : [mp4[0], webm[0], mp4[1], webm[1]];
   const muxed = (sd?.formats ?? []).filter(f => f.has_audio && hasUrl(f)).sort(order).slice(0, 2);
-  // Los formatos de directo/estreno (yt_live_broadcast) tienen duración falsa y acaban a los segundos: van al final
+
   const live = f => /yt_live_broadcast|source=yt_live/.test(f.url || "");
   const all = [...first, ...muxed].filter(Boolean);
   const mk = f => ({ itag: f.itag, bitrate: f.bitrate, mime: f.mime_type, muxed: !!f.has_video, live: live(f), url: () => f.decipher(yt.session.player), video: () => videoOffer(info, yt) });
   const normal = [...all.filter(f => !live(f)), ...all.filter(live)].map(mk);
-  // Directos y estrenos: solo se reproducen bien con el manifiesto HLS de YouTube
+
   const hlsUrl = sd?.hls_manifest_url;
   const hls = hlsUrl ? [{ itag: "hls", mime: "application/x-mpegURL", muxed: true, hls: true, live: true, url: async () => hlsUrl, video: () => hlsVideoOffer(hlsUrl) }] : [];
   const liveish = !!(info.basic_info?.is_live || info.basic_info?.is_post_live_dvr || all.some(live));
   return liveish ? [...hls, ...normal] : [...normal, ...hls];
 }
-// Oferta de vídeo para HLS: el propio manifiesto (la calidad la elige hls.js / el navegador)
+
 const hlsVideoOffer = url => ({ aspect: 16 / 9, heights: [], auto: 0, hls: true, async pick() { return { height: 0, url, hls: true }; } });
-// Respuestas que dicen "inicia sesión": restricción de edad o comprobación anti-bot (BitChord: AGE_GATE en resolver.ts).
-// En ambos casos una petición firmada con la cuenta del navegador (vía la extensión) suele pasar.
+
 const GATE = /confirm your age|age-restricted|inappropriate for some users|sign in to confirm|not a bot/i;
 const reasonOf = info => { const st = info?.playability_status; return st?.reason || st?.status || "sin respuesta"; };
 const whyNot = (info, signed = false) => {
@@ -165,9 +158,9 @@ const whyNot = (info, signed = false) => {
   if (/bot/i.test(why)) return new Error(`YouTube pidió verificar que no eres un bot (${why}). Inicia sesión en music.youtube.com en este navegador, recarga la extensión y reintenta.`);
   return new Error(/age|confirm/i.test(why) ? "Canción con restricción de edad: inicia sesión en YouTube Music en este navegador." : `YouTube: ${why}`);
 };
-// Con sesión, como BitChord (SIGNED_ORDER): primero los clientes web, que son los que aceptan el SAPISIDHASH; VISIONOS al final
+
 const SIGNED_CLIENTS = ["YTMUSIC", "WEB", "VISIONOS"];
-let signedFirstUntil = 0; // tras un bloqueo anti-bot, durante 10 min se pide directamente con la sesión
+let signedFirstUntil = 0;
 async function resolveWith(yt, videoId, aq, clients, signed) {
   let info = null, used = -1, firstErr = null, netErr = null;
   for (let c = 0; c < clients.length; c++) {
@@ -185,7 +178,7 @@ async function resolveWith(yt, videoId, aq, clients, signed) {
   const sources = audioSources(info, yt, aq);
   const vf = (info.streaming_data?.adaptive_formats ?? []).filter(f => f.has_video);
   console.info(`[FrikiMusic] ${signed ? "con sesión" : "anónimo"} ${clients[used]} OK · audio: ${sources.length} fuentes · vídeo: ${vf.length} formatos (${vf.filter(f => f.url || f.signature_cipher || f.cipher).length} con URL)`);
-  // Si la respuesta que da el audio no trae vídeo utilizable, se pide a los demás clientes solo la imagen
+
   const findVideo = async () => {
     for (let c = 0; c < clients.length; c++) {
       if (c === used) continue;
@@ -199,7 +192,7 @@ async function resolveWith(yt, videoId, aq, clients, signed) {
     }
     return null;
   };
-  // Otros clientes, solo si ninguna de las fuentes anteriores se deja reproducir
+
   const more = async () => {
     const out = [];
     for (let c = 0; c < clients.length; c++) {
@@ -215,22 +208,21 @@ async function resolveWith(yt, videoId, aq, clients, signed) {
 export async function resolveStream(videoId, aq = "auto") {
   const anon = async () => resolveWith(await getInnertube(), videoId, aq, CLIENTS, false);
   const withAccount = async () => resolveWith(await getSignedInnertube(), videoId, aq, SIGNED_CLIENTS, true);
-  // Como BitChord: anónimo primero; si YouTube pide iniciar sesión (edad o bot), se repite con la cuenta del navegador
-  if (Date.now() < signedFirstUntil) { try { return await withAccount(); } catch { /* si la sesión falla, se prueba anónimo */ } }
+
+  if (Date.now() < signedFirstUntil) { try { return await withAccount(); } catch {  } }
   try { return await anon(); }
   catch (e) {
-    if (!e.gate || isNative) throw e; // en la app de Android no hay extensión
+    if (!e.gate || isNative) throw e;
     if (e.bot) signedFirstUntil = Date.now() + 10 * 60_000;
     try { return await withAccount(); }
     catch (e2) {
-      // Sin sesión en el navegador, la extensión lo dice así: se explica con el mensaje de siempre
+
       if (/sesión de YouTube Music|not signed in/i.test(e2.message)) throw new Error(`${e.message.split(" (")[0]}: inicia sesión en music.youtube.com en este navegador y reintenta.`);
       throw e2;
     }
   }
 }
 
-// Foto del artista: avatar de la búsqueda de YouTube Music (nunca la portada de una canción)
 export async function fetchArtistAvatar(name) {
   try {
     const yt = await getInnertube();
@@ -248,8 +240,6 @@ export async function fetchArtistAvatar(name) {
   } catch { return ""; }
 }
 
-// Ficha de artista de YouTube Music: cabecera oficial, top canciones y estantes editoriales.
-// Si solo tenemos el nombre, primero buscamos un canal de artista para obtener su browseId.
 export async function fetchArtistPage(idOrName) {
   const yt = await getInnertube();
   let id = String(idOrName || "").trim();
@@ -274,7 +264,7 @@ export async function fetchArtistPage(idOrName) {
   const header = page.header || {};
   const name = header.title?.text || header.title?.toString?.() || id;
   const pickImage = thumbs => [...(thumbs || [])].sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || "";
-  // La cabecera cambia de forma según el artista (Immersive / Visual / Header): se prueban todas las rutas posibles
+
   let heroImage = [header.thumbnail?.contents, header.thumbnail, header.foreground_thumbnail, header.background?.contents, header.background, header.thumbnails]
     .map(t => pickImage(Array.isArray(t) ? t : [])).find(Boolean) || "";
   if (!heroImage) heroImage = await fetchArtistAvatar(name);
@@ -350,14 +340,12 @@ export async function fetchPlaylistPage(playlistId) {
 }
 export async function fetchAlbumTracks(albumId) { return (await fetchAlbumPage(albumId)).tracks; }
 
-// Imagen del videoclip, como engine.videoStream de BitChord: formatos solo-vídeo con URL directa.
-// Se descartan los "vídeos" cuadrados (la portada del álbum) y el HDR. H.264 primero: todos los navegadores lo decodifican por hardware.
 const MIN_VIDEO_ASPECT = 1.2, AUTO_MAX_HEIGHT = 1080;
 function videoOffer(info, yt) {
   const sd = info.streaming_data;
   const ok = f => f.has_video && f.width && f.height && (f.url || f.signature_cipher || f.cipher);
   const all = (sd?.adaptive_formats ?? []).filter(ok);
-  // Formato combinado (audio+vídeo, p. ej. itag 18 a 360p): sin PO token es el único que YouTube suele dejar abrir
+
   const mux = [...(sd?.formats ?? [])].filter(ok).sort((a, b) => b.height - a.height)[0];
   const largest = [...all, ...(mux ? [mux] : [])].sort((a, b) => b.width * b.height - a.width * a.height)[0];
   if (!largest || largest.width / largest.height < MIN_VIDEO_ASPECT) return null;
@@ -373,7 +361,7 @@ function videoOffer(info, yt) {
   const auto = heights.find(h => h <= AUTO_MAX_HEIGHT) ?? heights.at(-1);
   return {
     aspect, heights, auto, muxed,
-    // quality: altura fija o "auto". Si el vídeo no ofrece esa altura se usa la mejor que tenga.
+
     async pick(quality) {
       const h = quality === "auto" ? auto : byHeight.has(quality) ? quality : heights.find(x => x <= quality) ?? heights.at(-1), f = byHeight.get(h);
       return { height: h, url: await f.decipher(yt.session.player) };

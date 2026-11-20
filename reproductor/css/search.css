@@ -1,6 +1,5 @@
-/* Buscador: barra, sugerencias, filtros y resultados (js/search.js + search() en js/views.js) */
 
-/* Barra */
+
 .searchbar{position:relative}
 .searchbar>svg{color:var(--tx2)}
 .searchbar input{min-width:0}
@@ -14,7 +13,6 @@
 @media(hover:none){.searchbar .kbd,.tip{display:none}}
 [data-density=compact] .searchbar .sx{width:34px;height:34px}
 
-/* Sugerencias */
 .sug{position:absolute;left:0;right:0;top:calc(100% + 8px);padding:8px;max-height:min(420px,60vh);overflow:auto;background:var(--s2);border-radius:calc(24px*var(--rk));box-shadow:0 0 0 1px color-mix(in srgb,var(--olv) 70%,transparent),0 22px 48px -14px #000a;z-index:6;animation:sugin .14s var(--ease-in)}
 .sug[hidden]{display:none}
 @keyframes sugin{from{opacity:0;transform:translateY(-6px)}}
@@ -31,7 +29,6 @@
 .si button svg{width:18px;height:18px}
 .si button:hover{background:color-mix(in srgb,var(--tx) 12%,transparent);color:var(--tx)}
 
-/* Pantalla de inicio de Buscar */
 .chips{display:flex;flex-wrap:wrap;gap:10px}
 .chip.on{background:var(--c);color:var(--on-c)}
 .chip[disabled]{opacity:.4;cursor:default}.chip[disabled]:hover{background:var(--s3)}
@@ -44,7 +41,6 @@
 .tip{margin-top:36px;font-size:calc(13px*var(--fs))}
 kbd{padding:1px 7px;border:1px solid var(--olv);border-bottom-width:2px;border-radius:6px;font:600 .9em var(--font);color:var(--tx)}
 
-/* Resultados */
 .sbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0 20px}.sbar .grow{flex:1}
 mark{background:none;color:var(--p)}
 .now mark,.best mark{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
@@ -68,10 +64,8 @@ mark{background:none;color:var(--p)}
   .sbar .chip{flex:none;height:36px;padding:0 14px}.sbar .grow,.sbar .chip.fill{display:none}
 }
 
-/* Móvil: la lista de resultados pierde la columna de álbum/duración para que el título respire */
 @media(max-width:700px){.rlist .row{grid-template-columns:52px minmax(0,1fr) auto;gap:12px}.rlist .row img{width:52px;height:52px}.rlist .row>span{display:none}}
 
-/* Carga: esqueletos con la forma de una fila de resultado */
 .skrows{display:grid;gap:10px;margin-top:18px}
 .skrow{display:grid;grid-template-columns:56px 1fr;gap:14px;align-items:center;padding:8px 12px}
 .skrow i{display:block;background:linear-gradient(90deg,var(--s2),var(--s3),var(--s2));background-size:200%;animation:sh 1.2s infinite}

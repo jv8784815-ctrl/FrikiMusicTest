@@ -1,6 +1,5 @@
-// Videoclip de la canción, como Apple Music y BitChord (state/video.ts + playback/youtube/videoDeck.ts):
-// un único <video> mudo que sigue al audio. El audio manda el tiempo; la imagen lo persigue ajustando su
-// velocidad si se desvía poco y saltando si se desvía mucho. Solo se descarga mientras haya una superficie que lo muestre.
+
+
 import { au, P } from "./player.js";
 import { S } from "./store.js";
 import { attachHls } from "./hls.js";
@@ -20,11 +19,11 @@ export function setQuality(q) {
   if (q === "auto") localStorage.removeItem(KEY); else localStorage.setItem(KEY, String(q));
   VS.quality = q; refresh();
 }
-// Quien muestre el vídeo lo pide aquí; con cero superficies no se descarga nada.
+
 export function claim() { VS.surfaces++; refresh(); return () => { VS.surfaces--; refresh(); }; }
 
 let gen = 0, loadedKey = null, timer = null, detachVid = () => {};
-const failed = new Set(), useMuxed = new Set(); // useMuxed: canciones cuyo vídeo adaptativo no abrió; se usa el formato combinado
+const failed = new Set(), useMuxed = new Set();
 async function unload() {
   clearInterval(timer); timer = null; loadedKey = null; try { detachVid(); } catch {} detachVid = () => {};
   if (vid.getAttribute("src")) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
@@ -47,12 +46,12 @@ export async function refresh() {
     try { detachVid(); } catch {} detachVid = () => {};
     if (hls) detachVid = await attachHls(vid, url, { height: VS.quality, onLevel: () => { if (VS.ready && VS.id === song.id) { VS.height = detachVid.current?.() || VS.height; emit(); } } }); else vid.src = url;
     if (run !== gen) { try { detachVid(); } catch {} return; }
-    // Cuánto del hueco hay que ir por delante: lo que tarda en abrir el punto pedido
+
     const lead = .6;
     await new Promise((ok, no) => {
       const off = () => ["loadedmetadata", "canplay", "error"].forEach(e => vid.removeEventListener(e, on[e]));
       const on = {
-        // En cuanto hay metadatos se pide directamente el punto del audio: así se baja desde ahí, sin pasar por el principio
+
         loadedmetadata: () => { vid.currentTime = Math.max(0, au.currentTime + lead); },
         canplay: () => { if (vid.readyState >= 3) { off(); ok(); } },
         error: () => { off(); no(vid.error || new Error("vídeo")); },
@@ -61,7 +60,7 @@ export async function refresh() {
       setTimeout(() => { off(); vid.readyState >= 2 ? ok() : no(new Error("tiempo agotado")); }, 12000);
     });
     if (run !== gen) return;
-    // Hay búfer en el punto correcto: se coloca justo con el audio y recién entonces se enseña
+
     vid.playbackRate = au.playbackRate;
     if (!au.paused) await vid.play().catch(() => {});
     if (Math.abs(vid.currentTime - au.currentTime) > .25) vid.currentTime = au.currentTime + .1;
@@ -73,20 +72,18 @@ export async function refresh() {
     console.warn("FrikiMusic: no se pudo cargar el vídeo", e);
     loadedKey = null;
     if (offer.muxed && !useMuxed.has(song.id)) { useMuxed.add(song.id); return refresh(); }
-    // Una altura que este equipo no reproduce no debe costar la imagen: vuelve a Auto (H.264).
+
     if (VS.quality !== "auto") { setQuality("auto"); return; }
     failed.add(song.id); unload();
   }
 }
-// Mismo estado de reproducción, misma velocidad, mismo instante que el audio.
-// Se evita saltar: un salto obliga a reabrir la descarga y se nota como tirón. Solo se salta si el desvío es grande
-// y no hubo otro salto hace poco; el resto se corrige acelerando o frenando un poco la imagen.
+
 let lastSeek = 0;
 function sync() {
   if (!VS.ready || !au.src || vid.readyState < 1) return;
   if (au.paused) { if (!vid.paused) vid.pause(); if (Math.abs(vid.currentTime - au.currentTime) > .1) vid.currentTime = au.currentTime; return; }
   if (vid.paused) { vid.play().catch(() => {}); return; }
-  if (vid.readyState < 3) return;            // sin datos suficientes: se espera, no se toca el tiempo
+  if (vid.readyState < 3) return;
   const drift = vid.currentTime - au.currentTime, now = performance.now();
   if (Math.abs(drift) > SEEK_DRIFT) {
     if (now - lastSeek > 2500) { vid.currentTime = au.currentTime + (drift < 0 ? .15 : 0); lastSeek = now; }
@@ -97,7 +94,7 @@ function sync() {
   }
 }
 ["play", "pause", "ratechange"].forEach(e => au.addEventListener(e, sync));
-// El usuario salta en la canción: la imagen va al nuevo punto de inmediato
+
 au.addEventListener("seeked", () => { if (VS.ready) { vid.currentTime = au.currentTime + .1; lastSeek = performance.now(); } });
-// Cambio de canción: cae la imagen anterior de inmediato y se pide la nueva
+
 P.on(() => { if (VS.id && P.song?.id !== VS.id) unload(); refresh(); });

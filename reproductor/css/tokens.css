@@ -1,4 +1,4 @@
-/* Neutros y acentos tomados de la app de escritorio (Color.kt) */
+
 :root{--rk:1;--ck:1;--fs:1;--ly-k:1;--amb-mix:26%;--font:Inter,system-ui,sans-serif;--r-panel:calc(28px*var(--rk));--gutter:8px;--rail-w:80px;--rail-w-open:244px;--bar-h:96px;--ease:cubic-bezier(.2,0,0,1);--ease-in:cubic-bezier(.05,.7,.1,1)}
 [data-theme=dark]{--bg:#111215;--s0:#0d0e10;--s1:#1b1c1f;--s2:#1f2023;--s3:#2a2b2e;--s4:#353639;--tx:#e4e2e6;--tx2:#c5c6d0;--ol:#8f909a;--olv:#44464f;color-scheme:dark}
 [data-theme=light]{--bg:#dbd9dd;--s0:#fff;--s1:#f4f3f7;--s2:#efedf1;--s3:#e9e7ec;--s4:#e3e2e6;--tx:#1b1b1f;--tx2:#44464f;--ol:#74777f;--olv:#c4c6d0;color-scheme:light}

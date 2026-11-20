@@ -1,4 +1,4 @@
-// /api/windows → redirige al instalador .exe más reciente (nunca al APK).
+
 const { findWindows } = require('./_windows');
 
 module.exports = async function handler(req, res) {

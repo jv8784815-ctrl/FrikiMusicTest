@@ -334,7 +334,7 @@
     })
     .then(function (data) {
       if (data && data.partial) {
-        // La API de GitHub no respondió: se muestra al menos lo de Windows
+
         if (versionEl) versionEl.textContent = 'Ver en GitHub';
         renderWindows(data.windows || {});
         return;

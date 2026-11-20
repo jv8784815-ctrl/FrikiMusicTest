@@ -1,8 +1,5 @@
-// Reproductor completo, como el de BitChord (shell/FullScreenPlayer.tsx):
-//  - la portada a la izquierda con título, barra y controles; a la derecha las letras o "Siguiente";
-//  - un videoclip solo ocupa toda la ventana (con los controles encima, que se ocultan si el puntero reposa 3 s);
-//    junto a las letras o la cola ocupa el sitio de la portada en 16:9.
-// Se construye una vez y se actualiza por partes, para no romper el <video> ni el barrido de las letras.
+
+
 import { icon } from "./icons.js";
 import { pic, hq, bindCoverFallback } from "./img.js";
 import { P, au, toggle, next, prev, AQ, audioLabel, setAudioQuality } from "./player.js";
@@ -17,7 +14,6 @@ const $ = (r, s) => r.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 export const fmt = s => isFinite(s) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "0:00";
 
-// Controles + barra ondulada (los usa también la barra inferior)
 export function transport() {
   const pl = !au.paused;
   return `<div class="ctl"><div class="btns"><button class="ibtn" data-act="prev" aria-label="Anterior">${icon("prev")}</button>
@@ -34,7 +30,7 @@ let artFxTimer = 0;
 function animateArtwork(showLyrics) {
   clearTimeout(artFxTimer);
   root.classList.remove("lyrics-art-in", "lyrics-art-out");
-  // Reinicia la animación para que también se reproduzca en alternancias rápidas.
+
   void root.offsetWidth;
   root.classList.add(showLyrics ? "lyrics-art-in" : "lyrics-art-out");
   artFxTimer = setTimeout(() => root.classList.remove("lyrics-art-in", "lyrics-art-out"), 700);
@@ -103,7 +99,6 @@ function wake() {
 }
 const applyIdle = () => root.classList.toggle("idle", root.dataset.mode === "theater" && !au.paused && idle);
 
-// Letras de la canción que suena: una sola búsqueda por canción (y por fuente elegida)
 function syncLyrics() {
   const s = P.song; if (!s || !lv) return;
   const key = s.id + "|" + (lyricsOnly ?? "");
@@ -120,7 +115,7 @@ function update() {
   const s = P.song; if (!s) return closeFull();
   const f = root;
   if (builtSong !== s.id) {
-    // Canción nueva: la elección de columna manda; si no hay, vuelven las letras (y si llega vídeo, desaparecen)
+
     if (builtSong !== null && !picked) panel = dpanel();
     builtSong = s.id; lyricsOnly = null; lv.reset(); lyricsFor = null;
     $(f, ".cov").src = hq(s.cover, 1000); $(f, ".cov").dataset.o = s.cover;
@@ -133,7 +128,7 @@ function update() {
   const video = hasVideo(), col = panel === "lyrics" || panel === "queue";
   const mode = video ? (col ? "split" : "theater") : "art";
   f.dataset.mode = mode; f.dataset.col = panel || "";
-  // El <video> vive en un solo sitio a la vez: a ventana completa, o en el hueco de la portada
+
   if (mode !== lastMode) {
     if (mode === "theater") $(f, "[data-vt]").append(vid); else if (mode === "split") $(f, "[data-vs]").append(vid); else vid.remove();
     if (mode !== "art" && !au.paused) vid.play().catch(() => {});
@@ -143,11 +138,11 @@ function update() {
   $(f, "[data-ctl] .play").innerHTML = icon(au.paused ? "play" : "pause", 28);
   $(f, "[data-ctl] .play").setAttribute("aria-label", au.paused ? "Reproducir" : "Pausar");
   f.classList.toggle("paused", au.paused);
-  // Calidad del vídeo: solo hay selector si ofrece más de una altura
+
   const vq = $(f, "[data-vq]");
   vq.hidden = false;
   vq.textContent = video && VS.heights.length > 1 ? qualityLabel(VS.quality === "auto" || !VS.heights.includes(VS.quality) ? VS.height : VS.quality) : "♪ " + audioLabel(AQ.quality);
-  // Columna derecha
+
   const colEl = $(f, "[data-col]"); colEl.hidden = !col;
   $(f, '[data-panel="lyrics"]').setAttribute("aria-pressed", panel === "lyrics");
   $(f, '[data-panel="queue"]').setAttribute("aria-pressed", panel === "queue");

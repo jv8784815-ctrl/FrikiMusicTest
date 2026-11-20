@@ -1,5 +1,5 @@
-// Panel de letras: línea activa centrada, barrido palabra a palabra (o sílaba a sílaba) solo si la letra trae tiempos por palabra y clic para saltar.
-// Sustituye al <am-lyrics> de BitChord, que necesita compilador; aquí es JS plano sobre el audio.
+
+
 import { au } from "./player.js";
 import { SOURCES, isGap } from "./lyrics.js";
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -12,7 +12,7 @@ function spans(words) {
 }
 function lineHTML(l, i, synced) {
   if (isGap(l)) return `<div class="ly gap" data-i="${i}" data-t="${l.timeMs}"><i></i><i></i><i></i></div>`;
-  // Sin tiempos por palabra no hay barrido: la línea entera se enciende (clase "ln") al empezar su turno
+
   const lead = l.words.length ? spans(l.words) : `<span class="sy ln">${esc(l.text)}</span>`;
   const bg = l.background ? `<div class="bgv">${l.background.words.length ? spans(l.background.words) : `<span class="sy ln">${esc(l.background.text)}</span>`}</div>` : "";
   return `<div class="ly${l.alignment === "end" ? " end" : ""}${synced ? "" : " plain"}" data-i="${i}" data-t="${l.timeMs}">${lead}${bg}</div>`;
@@ -62,7 +62,7 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
 
   return {
     el, start, stop,
-    // Estado: "loading" | "none" | resultado de lookupLyrics
+
     set(state, log = []) {
       active = -2; rows = []; lines = []; box.scrollTop = 0; label.textContent = "";
       if (state === "loading") { box.innerHTML = `<div class="lv-msg">${"<div class=\"sk\"></div>".repeat(7)}</div>`; return; }
@@ -76,7 +76,7 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
       label.textContent = `${state.label} · ${state.wordSynced ? "palabra a palabra" : state.synced ? "por líneas" : "sin sincronizar"}`;
       pick.value = forced;
     },
-    // Al cambiar de canción se vuelve a "Automático"
+
     reset() { forced = ""; pick.value = ""; },
     destroy() { stop(); el.remove(); },
   };

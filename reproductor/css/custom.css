@@ -1,6 +1,6 @@
-/* Personalización: se activa con atributos data-* en <html> (los pone applyTheme() en store.js) */
+
 [data-motion=off] *,[data-motion=off] *::before,[data-motion=off] *::after{animation:none!important;transition:none!important}
-/* Densidad */
+
 [data-density=compact]{--bar-h:82px}
 [data-density=compact] .row{padding:4px 10px;grid-template-columns:44px minmax(0,1fr) auto auto;gap:12px}
 [data-density=compact] .row img{width:44px;height:44px}
@@ -12,18 +12,18 @@
 [data-density=airy] .row{padding:12px 14px;gap:18px}
 [data-density=airy] .sec{margin:40px 0 18px}
 [data-density=airy] .rail .item{height:60px}[data-density=airy] .cols{grid-template-rows:repeat(4,64px)}
-/* Botón de reproducir */
+
 [data-playshape=circle] .play{border-radius:50%}
-/* Fondo del reproductor grande */
+
 [data-fbg=blur] .full::before{inset:-10%;background:var(--cov) center/cover;filter:blur(56px) saturate(1.5);opacity:.6}
 [data-fbg=solid] .full::before{display:none}
 [data-fanim=off] .full::before{animation:none}
-/* Letras */
+
 [data-lyalign=center] .ly{text-align:center;transform-origin:center}
 [data-lyalign=center] .ly.gap{justify-content:center}
 [data-lyblur=off] .ly{filter:none}
 [data-sweep=off] .ly:not(.gap):not(.x) .sy{--k:100!important}
-/* Página de ajustes */
+
 .ssec{margin-top:30px}.ssec>h2{margin-bottom:12px}
 .scard{background:var(--s2);border-radius:calc(24px*var(--rk));padding:4px 0;overflow:hidden}
 .srow{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px 20px;min-height:64px}
@@ -48,6 +48,6 @@
 .pal .dyn{background:conic-gradient(var(--m1),var(--m2),var(--m3),var(--m4),var(--m1))}
 .sbtns{display:flex;flex-wrap:wrap;gap:10px;padding:16px 20px}.chip.danger{color:#ff8a80}
 @media(max-width:700px){.srow{flex-wrap:wrap;gap:12px}.rng input{width:140px}}
-/* Móvil: respeta el notch y la barra de inicio */
+
 .shell{padding:max(var(--gutter),env(safe-area-inset-top)) max(var(--gutter),env(safe-area-inset-right)) max(var(--gutter),env(safe-area-inset-bottom)) max(var(--gutter),env(safe-area-inset-left))}
 .full{inset:max(var(--gutter),env(safe-area-inset-top)) max(var(--gutter),env(safe-area-inset-right)) max(var(--gutter),env(safe-area-inset-bottom)) max(var(--gutter),env(safe-area-inset-left))}

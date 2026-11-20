@@ -1,5 +1,5 @@
-// Localiza el instalador de Windows (.exe) más reciente del repositorio de releases.
-// Orden: 1) API de GitHub  2) feed Atom + páginas HTML de assets (no gastan el límite de la API)  3) último .exe conocido.
+
+
 const REPO = 'jv8784815-ctrl/repositpory-for-apk-3wfqewfd32134';
 const LAST_KNOWN = {
   version: 'v2.3.0',

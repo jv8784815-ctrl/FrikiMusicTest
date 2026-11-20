@@ -1,20 +1,19 @@
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem("fm." + k)) ?? d; } catch { return d; } };
 
-// Valores por defecto de todos los ajustes (se guardan en fm.cfg; los que falten se rellenan con estos)
 export const DEF = {
-  // Apariencia
+
   customColor: "#ff5fa2", font: "inter", fs: 100, radius: "normal", density: "normal", motion: true,
-  // Fondo
+
   ambient: true, ambInt: 26, fbg: "mesh", fanim: true,
-  // Barras
+
   wave: "wavy", playShape: "squircle",
-  // Inicio
+
   cardSize: "medium", histMax: 30, home: { recent: true, feed: true, again: true, mixes: true, likes: true, artist: true, top: true },
-  // Reproductor y letras
+
   fdesign: "classic", fpanel: "lyrics", video: true, idle: 3, lySize: 100, lyAlign: "left", lyBlur: true, sweep: true,
-  // Mini reproductor flotante
+
   miniDesign: "glass", miniSize: "medium", miniLyric: true, miniAuto: false,
-  // Reproducción
+
   autonext: true, stats: true, volume: .8,
 };
 export const mergeCfg = c => ({ ...DEF, ...(c && typeof c === "object" ? c : {}), home: { ...DEF.home, ...(c?.home || {}) } });
@@ -23,7 +22,7 @@ export const S = { likes: load("likes", []), history: load("history", []), plays
 export const save = k => { try { localStorage.setItem("fm." + k, JSON.stringify(S[k])); } catch {} };
 export const isLiked = id => S.likes.some(s => s.id === id);
 export const toggleLike = s => { S.likes = isLiked(s.id) ? S.likes.filter(x => x.id !== s.id) : [s, ...S.likes]; save("likes"); };
-// Búsquedas recientes: sin duplicados (sin distinguir mayúsculas), la más nueva primero, máximo 8
+
 export const pushRecent = q => { q = q.trim(); if (!q) return; S.recent = [q, ...S.recent.filter(x => x.toLowerCase() !== q.toLowerCase())].slice(0, 8); save("recent"); };
 export const artistNames = a => String(a || "").split(/\s*(?:,|&|\sy\s|\sx\s|\sfeat\.?\s|\sft\.?\s|\swith\s|\scon\s)\s*/i).map(x => x.trim()).filter(Boolean);
 export const countPlay = s => { for (const n of new Set(artistNames(s.artist))) S.plays[n] = (S.plays[n] || 0) + 1; save("plays"); };
@@ -45,10 +44,8 @@ export const FONTS = {
 };
 const RK = { sharp: 0, soft: .5, normal: 1, round: 1.5 }, CK = { small: .8, medium: 1, large: 1.25 };
 
-// Color dominante de la portada (lo rellena ambient.js) para el acento "Dinámico"
 export const dyn = { color: null };
 
-// Genera la paleta (primario, sobre-primario, contenedor, sobre-contenedor) a partir de un color cualquiera
 const toHsl = hex => {
   const n = parseInt(hex.slice(1), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
   const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;

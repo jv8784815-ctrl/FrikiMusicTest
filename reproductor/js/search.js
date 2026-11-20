@@ -1,5 +1,5 @@
-// Buscador: barra con sugerencias, búsquedas recientes, atajos de teclado y filtros de resultados.
-// La vista de resultados (search() en views.js) solo pinta; aquí vive todo lo interactivo.
+
+
 import { icon } from "./icons.js";
 import { S, save } from "./store.js";
 import { V } from "./views.js";
@@ -19,7 +19,6 @@ export const searchBarHTML = q => `${icon("search")}
 export const setBusy = b => $("#searchForm")?.classList.toggle("busy", !!b);
 const syncHas = () => $("#searchForm")?.classList.toggle("has", !!$("#q")?.value);
 
-// Sugerencias. Sin texto: tus búsquedas recientes. Con texto: recientes que coinciden + artistas y canciones de tu biblioteca (historial y favoritos).
 export function suggest(text) {
   const t = norm(text).trim(), out = [], seen = new Set([t]);
   const add = (q, kind, label = q, sub = "") => { const k = norm(q); if (!q || seen.has(k) || out.length >= 8) return; seen.add(k); out.push({ q, kind, label, sub }); };
@@ -35,7 +34,7 @@ const box = () => $("#sug");
 export function closeSug() { const b = box(); if (b) { b.hidden = true; b.innerHTML = ""; } $("#q")?.setAttribute("aria-expanded", "false"); $("#q")?.removeAttribute("aria-activedescendant"); act = -1; }
 function render() {
   const inp = $("#q"), b = box(); if (!inp || !b) return;
-  const text = inp.value, onStart = location.hash === "#/search" && !V.q && !V.loading; // en la pantalla de inicio de Buscar los recientes ya se ven en la página
+  const text = inp.value, onStart = location.hash === "#/search" && !V.q && !V.loading;
   items = suggest(text); act = -1;
   if (!items.length || document.activeElement !== inp || (!text.trim() && onStart)) return closeSug();
   const head = text.trim() ? "" : `<div class="sh"><span>Búsquedas recientes</span><button type="button" class="lnk" data-sclear>Borrar todo</button></div>`;
@@ -44,7 +43,7 @@ function render() {
   b.hidden = false; inp.setAttribute("aria-expanded", "true");
 }
 function move(d) {
-  const n = items.length + 1; act = ((act + 1 + d + n) % n) - 1; // da la vuelta pasando por "ninguna" (-1)
+  const n = items.length + 1; act = ((act + 1 + d + n) % n) - 1;
   box().querySelectorAll(".si").forEach((el, i) => { el.classList.toggle("on", i === act); el.setAttribute("aria-selected", i === act); });
   const inp = $("#q"); act >= 0 ? (inp.setAttribute("aria-activedescendant", "so" + act), $("#so" + act).scrollIntoView({ block: "nearest" })) : inp.removeAttribute("aria-activedescendant");
 }
@@ -57,7 +56,7 @@ export function bindSearch({ run: r, redraw: d }) {
   form.addEventListener("input", e => { if (e.target.id === "q") { syncHas(); render(); } });
   form.addEventListener("focusin", e => { if (e.target.id === "q") render(); });
   form.addEventListener("focusout", e => { if (!form.contains(e.relatedTarget)) closeSug(); });
-  form.addEventListener("mousedown", e => { if (e.target.closest("#sug")) e.preventDefault(); }); // clicar una sugerencia no le quita el foco al campo
+  form.addEventListener("mousedown", e => { if (e.target.closest("#sug")) e.preventDefault(); });
   form.addEventListener("keydown", e => {
     if (e.target.id !== "q") return;
     const open = !box().hidden;
@@ -68,10 +67,10 @@ export function bindSearch({ run: r, redraw: d }) {
   document.addEventListener("keydown", e => {
     const typing = /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable;
     if (e.altKey || !$("#full").hidden) return;
-    if ((e.key === "/" && !typing && !e.ctrlKey && !e.metaKey) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k")) { e.preventDefault(); focusBar(); } // "/" lleva Shift en teclados en español: no se comprueba
+    if ((e.key === "/" && !typing && !e.ctrlKey && !e.metaKey) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k")) { e.preventDefault(); focusBar(); }
   });
   document.addEventListener("click", e => {
-    if (e.target.closest('#rail a[href="#/search"]')) { // un segundo clic en "Buscar" estando en los resultados vuelve a la pantalla de inicio (recientes y géneros)
+    if (e.target.closest('#rail a[href="#/search"]')) {
       if (location.hash === "#/search" && V.q && !V.loading) { Object.assign(V, { q: "", results: [], err: "", filter: "all" }); $("#q").value = ""; syncHas(); redraw(); }
       setTimeout(focusBar, 0);
     }
