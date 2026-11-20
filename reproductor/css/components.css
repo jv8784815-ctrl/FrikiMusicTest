@@ -52,7 +52,9 @@
 .play{width:56px;height:56px;border-radius:calc(20px*var(--rk));background:var(--p);color:var(--on-p);display:grid;place-items:center;transition:border-radius .25s var(--ease),transform .15s}
 .play:hover{border-radius:50%}.play:active{transform:scale(.94)}
 .wavy-wrap{display:flex;align-items:center;gap:10px;width:100%;font-size:calc(12px*var(--fs));color:var(--tx2)}
-.wavy-wrap canvas{flex:1;height:28px;min-width:0;cursor:pointer;touch-action:none}
+.wavy-wrap canvas{flex:1;height:40px;min-width:0;cursor:pointer;touch-action:none;outline:none;border-radius:12px}
+.wavy-wrap canvas:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+.bar .wavy-wrap canvas{height:32px}
 .vol{display:flex;justify-content:flex-end;align-items:center;gap:6px}
 .vol input{width:110px;accent-color:var(--p)}
 
