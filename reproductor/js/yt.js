@@ -180,7 +180,7 @@ async function resolveWith(yt, videoId, aq, clients, signed) {
   console.info(`[FrikiMusic] ${signed ? "con sesión" : "anónimo"} ${clients[used]} OK · audio: ${sources.length} fuentes · vídeo: ${vf.length} formatos (${vf.filter(f => f.url || f.signature_cipher || f.cipher).length} con URL)`);
 
   const findVideo = async (want = 1080, curTop = 0) => {
-    const tryList = [...new Set([...clients, "TV_SIMPLY", "IOS", "ANDROID", "MWEB"])];
+    const tryList = [...new Set([...clients, "TV_SIMPLY", "MWEB"])];
     let best = null;
     for (const cl of tryList) {
       if (cl === clients[used]) continue;
