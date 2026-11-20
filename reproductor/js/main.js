@@ -210,7 +210,7 @@ bindSettings({ redraw: drawView, rail: drawRail, toast });
 bindMini({ toast, onLike: () => { drawView(); drawBar(); } }); setAutoMini();
 bindSearch({ run: runSearch, redraw: drawView });
 applyTheme(); drawTop(); drawRail(); drawView(); drawBar();
-bridge("ping").then(() => { V.ext = true; X.ok = true; if (cur() === "settings") drawView(); }).catch(() => { V.ext = false; X.ok = false; drawView(); });
+bridge("ping").then(r => { V.ext = true; X.ok = true; X.v = r?.version || ""; if (cur() === "settings") drawView(); }).catch(() => { V.ext = false; X.ok = false; drawView(); });
 const within = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(Error("Tiempo agotado")), ms))]);
 async function loadHome() {
   const tries = [

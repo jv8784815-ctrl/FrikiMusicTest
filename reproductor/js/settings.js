@@ -4,7 +4,7 @@ import { S, DEF, FONTS, save, mergeCfg, applyTheme } from "./store.js";
 import { VS, setQuality, refresh as refreshVideo } from "./video.js";
 import { AQ, setAudioQuality } from "./player.js";
 import { setAutoMini, refreshMini } from "./mini.js";
-import { extSection, X } from "./ext.js";
+import { extSection, extIsOpen, extWhere, X } from "./ext.js";
 import { bridge } from "./bridge.js";
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -33,6 +33,7 @@ const pal = () => `<div class="pal">${Object.entries(PAL).map(([k, c]) => `<butt
 export function settings() {
   const fonts = Object.entries(FONTS).map(([k, [n]]) => [k, n]);
   return `<h1>Ajustes</h1>`
+    + extSection()
     + sec("Apariencia",
       row("Tema", "«Automático» sigue el modo claro/oscuro del sistema.", seg("theme", [["dark", "Oscuro"], ["light", "Claro"], ["auto", "Automático"]]))
       + row("Color de acento", "Elige uno, deja que lo ponga la portada (Dinámico) o crea el tuyo.", pal(), "col")
@@ -78,8 +79,7 @@ export function settings() {
       + row("Barrido palabra a palabra", "Solo con letras sincronizadas palabra a palabra; las de por líneas nunca barren. Si lo apagas, la línea activa se ilumina entera.", sw("sweep"))
       + row("Difuminar líneas inactivas", "", sw("lyBlur")))
     + sec("Reproducción", row("Pasar a la siguiente canción al terminar", "El volumen se recuerda siempre.", sw("autonext")) + row("Contar mis reproducciones en el Top", "Anónimo: solo la canción y tu país, sin cuenta ni datos personales.", sw("stats")))
-    + sec("Idioma", row("Idioma", "Se detecta del navegador. Cambiarlo recarga la página.", `<select class="ssel" data-lang aria-label="Idioma"><option value="auto"${langPref() === "auto" ? " selected" : ""}>Automático</option>${LANGS.map(([v, n]) => `<option translate="no" value="${v}"${langPref() === v ? " selected" : ""}>${n}</option>`).join("")}</select>`))
-    + extSection();
+    + sec("Idioma", row("Idioma", "Se detecta del navegador. Cambiarlo recarga la página.", `<select class="ssel" data-lang aria-label="Idioma"><option value="auto"${langPref() === "auto" ? " selected" : ""}>Automático</option>${LANGS.map(([v, n]) => `<option translate="no" value="${v}"${langPref() === v ? " selected" : ""}>${n}</option>`).join("")}</select>`));
 }
 
 export function bindSettings({ redraw, rail, toast }) {
@@ -113,7 +113,9 @@ export function bindSettings({ redraw, rail, toast }) {
     else if (a === "reset") { if (!confirm("¿Restablecer todos los ajustes a sus valores originales? Tus favoritos no se tocan.")) return;
       ["cfg", "accent", "theme", "rail", "vq", "aq"].forEach(k => localStorage.removeItem("fm." + k));
       S.cfg = mergeCfg({}); S.accent = "rose"; S.theme = "dark"; S.rail = true; setQuality("auto"); setAudioQuality("auto"); apply("rail"); redraw(); toast("Ajustes restablecidos"); }
-    else if (a === "extcheck") { X.ok = null; redraw(); bridge("ping").then(() => { X.ok = true; toast("Extensión detectada"); }).catch(() => { X.ok = false; toast("Sigue sin responder: revisa los pasos y recarga la página"); }).finally(redraw); }
+    else if (a === "extopen") { const c = document.querySelector(".extcard"); if (!c) return; X.open = !extIsOpen(); c.classList.toggle("open", X.open); c.querySelector(".extrow")?.setAttribute("aria-expanded", X.open); }
+    else if (a === "extcopy") { navigator.clipboard?.writeText(extWhere).then(() => toast("Dirección copiada"), () => toast(extWhere)); }
+    else if (a === "extcheck") { X.ok = null; redraw(); bridge("ping").then(r => { X.ok = true; X.v = r?.version || ""; toast("Extensión detectada"); }).catch(() => { X.ok = false; toast("Sigue sin responder: revisa los pasos y recarga la página"); }).finally(redraw); }
     else if (a === "clearhist") { if (!confirm("¿Borrar el historial de reproducción?")) return; S.history = []; save("history"); redraw(); toast("Historial borrado"); }
     else if (a === "clearlikes") { if (!confirm("¿Borrar todos tus favoritos?")) return; S.likes = []; save("likes"); redraw(); toast("Favoritos borrados"); }
   }
