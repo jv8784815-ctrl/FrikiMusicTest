@@ -1,3 +1,4 @@
+import { LANG } from "./i18n.js";
 import { icon } from "./icons.js";
 import { S, isLiked } from "./store.js";
 import { P, au } from "./player.js";
@@ -43,7 +44,7 @@ const secHead = sc => {
   return `<div class="sec"><div class="sech">${strap}<h2>${inner}</h2></div></div>`;
 };
 const PERIODS = [["day", "Hoy"], ["week", "Esta semana"], ["month", "Este mes"]];
-export const countryName = c => { try { return new Intl.DisplayNames(["es"], { type: "region" }).of(c) || c; } catch { return c; } };
+export const countryName = c => { try { return new Intl.DisplayNames([LANG], { type: "region" }).of(c) || c; } catch { return c; } };
 const rankRow = key => (s, i) => `<div class="mini rank${P.song?.id === s.id ? " now" : ""}" tabindex="0" data-play="${key}:${i}"><i class="rk">${i + 1}</i>${pic(s.cover, 120, 'loading="lazy"')}<div><b>${esc(s.title)}</b><span>${esc(s.artist)} • ${s.plays == null ? "" : s.plays + (s.plays === 1 ? " reproducción" : " reproducciones")}</span></div></div>`;
 const topRow = rankRow("top");
 const topBlock = () => {

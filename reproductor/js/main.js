@@ -1,3 +1,4 @@
+import "./i18n.js";
 import { icon, oicon, brandMark } from "./icons.js";
 import { bridge } from "./bridge.js";
 import { X } from "./ext.js";

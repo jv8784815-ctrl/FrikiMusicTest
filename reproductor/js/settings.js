@@ -1,4 +1,5 @@
 
+import { LANGS, langPref, setLangPref } from "./i18n.js";
 import { S, DEF, FONTS, save, mergeCfg, applyTheme } from "./store.js";
 import { VS, setQuality, refresh as refreshVideo } from "./video.js";
 import { AQ, setAudioQuality } from "./player.js";
@@ -77,6 +78,7 @@ export function settings() {
       + row("Barrido palabra a palabra", "Solo con letras sincronizadas palabra a palabra; las de por líneas nunca barren. Si lo apagas, la línea activa se ilumina entera.", sw("sweep"))
       + row("Difuminar líneas inactivas", "", sw("lyBlur")))
     + sec("Reproducción", row("Pasar a la siguiente canción al terminar", "El volumen se recuerda siempre.", sw("autonext")) + row("Contar mis reproducciones en el Top", "Anónimo: solo la canción y tu país, sin cuenta ni datos personales.", sw("stats")))
+    + sec("Idioma", row("Idioma", "Se detecta del navegador. Cambiarlo recarga la página.", `<select class="ssel" data-lang aria-label="Idioma"><option value="auto"${langPref() === "auto" ? " selected" : ""}>Automático</option>${LANGS.map(([v, n]) => `<option translate="no" value="${v}"${langPref() === v ? " selected" : ""}>${n}</option>`).join("")}</select>`))
     + extSection()
     + `<section class="ssec"><h2>Datos</h2><div class="scard"><div class="sbtns">
         <button class="chip" data-do="export">Exportar copia</button><button class="chip" data-do="import">Importar copia</button>
@@ -102,6 +104,7 @@ export function bindSettings({ redraw, rail, toast }) {
   });
   document.addEventListener("change", e => {
     const t = e.target;
+    if (t.tagName === "SELECT" && "lang" in (t.dataset || {})) { setLangPref(t.value); return; }
     if (t.tagName === "SELECT" && t.dataset?.set) { set(t.dataset.set, parse(t.value)); apply(t.dataset.set); redraw(); }
     else if (t.type === "color" && t.dataset?.set) redraw();
     else if (t.id === "impFile" && t.files[0]) importFile(t.files[0]);

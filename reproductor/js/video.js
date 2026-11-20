@@ -5,6 +5,8 @@ import { S } from "./store.js";
 import { attachHls } from "./hls.js";
 
 const KEY = "fm.vq", SEEK_DRIFT = .8, IGNORE_DRIFT = .04, SYNC_MS = 250;
+const PREBUFFER = 6;
+const aheadOf = () => { const b = vid.buffered, t = vid.currentTime; for (let i = 0; i < b.length; i++) if (t >= b.start(i) - .05 && t <= b.end(i)) return b.end(i) - t; return 0; };
 const stored = () => { const h = Number(localStorage.getItem(KEY)); return h > 0 ? h : "auto"; };
 export const VS = { id: null, ready: false, height: null, heights: [], quality: stored(), surfaces: 0 };
 const subs = new Set(); export const onVideo = f => subs.add(f);
@@ -56,15 +58,16 @@ export async function refresh() {
 
     const lead = .6;
     await new Promise((ok, no) => {
-      const off = () => ["loadedmetadata", "canplay", "error"].forEach(e => vid.removeEventListener(e, on[e]));
+      const off = () => ["loadedmetadata", "canplay", "progress", "error"].forEach(e => vid.removeEventListener(e, on[e]));
       const on = {
 
         loadedmetadata: () => { vid.currentTime = Math.max(0, au.currentTime + lead); },
-        canplay: () => { if (vid.readyState >= 3) { off(); ok(); } },
+        canplay: () => { if (vid.readyState >= 3 && aheadOf() >= PREBUFFER) { off(); ok(); } },
+        progress: () => { if (vid.readyState >= 3 && aheadOf() >= PREBUFFER) { off(); ok(); } },
         error: () => { off(); no(vid.error || new Error("vídeo")); },
       };
       for (const e in on) vid.addEventListener(e, on[e]);
-      setTimeout(() => { off(); vid.readyState >= 2 ? ok() : no(new Error("tiempo agotado")); }, height >= 1440 ? 30000 : 15000);
+      setTimeout(() => { off(); vid.readyState >= 3 ? ok() : no(new Error("tiempo agotado")); }, height >= 1440 ? 30000 : 15000);
     });
     if (run !== gen) return;
 

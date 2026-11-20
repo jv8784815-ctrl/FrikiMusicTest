@@ -1,5 +1,6 @@
 
 
+import { LANG, attach as attachI18n } from "./i18n.js";
 import { icon } from "./icons.js";
 import { hq } from "./img.js";
 import { P, au, toggle, next, prev } from "./player.js";
@@ -100,9 +101,10 @@ export async function toggleMini() {
   try {
     const [width, height] = dims();
     const w = await documentPictureInPicture.requestWindow({ width, height });
-    pip = w; root = w.document.body; w.document.documentElement.lang = "es";
+    pip = w; root = w.document.body; w.document.documentElement.lang = LANG;
     for (const el of document.head.querySelectorAll("link[rel=stylesheet]")) { const l = w.document.createElement("link"); l.rel = "stylesheet"; l.href = el.href; w.document.head.append(l); }
     root.innerHTML = html();
+    attachI18n(w.document);
     sync(); mo = new MutationObserver(sync); mo.observe(document.documentElement, { attributes: true });
     stopWavy = wavy(root.querySelector("[data-wavy]"));
     stopLiquid = liquid(w, root, () => S.cfg.motion);
