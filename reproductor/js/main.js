@@ -246,7 +246,7 @@ async function loadTopPage(k) {
     if (scope === "country" && d.country) d = { ...d, items: await fetchCountryChart(d.country), source: "yt" };
     topCache.set(key, { d, t: Date.now() });
     if (T.period + scope === key) { T.data = d; if (d.country && d.country !== V.top.country) { V.top.country = d.country; drawRail(); } }
-  } catch { if (T.period + scope === key) { T.data = null; T.err = "No se pudo cargar el Top. Inténtalo de nuevo en un momento."; } }
+  } catch (e) { console.error("[FrikiMusic] top", e); if (T.period + scope === key) { T.data = null; T.err = "No se pudo cargar el Top" + (scope === "country" && e?.message ? " (" + e.message + ")" : "") + ". Inténtalo de nuevo en un momento."; } }
   if (T.period + scope === key) T.loading = false;
   if (cur() === k) drawView();
 }

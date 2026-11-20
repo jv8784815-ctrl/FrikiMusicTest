@@ -341,60 +341,52 @@ export async function fetchPlaylistPage(playlistId) {
 export async function fetchAlbumTracks(albumId) { return (await fetchAlbumPage(albumId)).tracks; }
 
 const CHART_TITLE = /top\s*(songs|canciones|temas)|canciones.*(populares|top|m[aá]s)|top\s*100|m[aá]s escuchad|songs/i;
+const runsText = v => (v?.runs || []).map(r => r.text).join("") || v?.simpleText || "";
+const bestThumb = t => [...(t?.thumbnails || [])].sort((a, b) => (b.width || 0) - (a.width || 0))[0]?.url || "";
+function rawChartItem(node) {
+  const r = node.musicResponsiveListItemRenderer, t = node.musicTwoRowItemRenderer;
+  if (r) {
+    const cols = r.flexColumns || [];
+    const col = i => cols[i]?.musicResponsiveListItemFlexColumnRenderer?.text;
+    const id = r.playlistItemData?.videoId || r.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId || col(0)?.runs?.[0]?.navigationEndpoint?.watchEndpoint?.videoId;
+    const title = runsText(col(0));
+    const runs = (col(1)?.runs || []).filter(x => x.text && x.text.trim() !== "•" && x.text.trim() !== "&" && x.text.trim() !== ",");
+    const artist = runs.filter(x => x.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC")).map(x => x.text).join(", ") || runs[0]?.text || "";
+    if (!id || !title) return null;
+    return { id, title, artist, cover: bestThumb(r.thumbnail?.musicThumbnailRenderer?.thumbnail) || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, plays: null, song: true };
+  }
+  if (t) {
+    const id = t.navigationEndpoint?.watchEndpoint?.videoId, title = runsText(t.title);
+    const artist = (t.subtitle?.runs || []).map(x => x.text).filter(x => x && x.trim() !== "•").slice(-2, -1)[0] || runsText(t.subtitle).split("•")[0].trim();
+    if (!id || !title) return null;
+    return { id, title, artist, cover: bestThumb(t.thumbnailRenderer?.musicThumbnailRenderer?.thumbnail) || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, plays: null, song: false };
+  }
+  return null;
+}
+function rawChart(data) {
+  const shelves = [];
+  const walk = n => {
+    if (!n || typeof n !== "object") return;
+    if (Array.isArray(n)) { n.forEach(walk); return; }
+    const c = n.musicCarouselShelfRenderer || n.musicShelfRenderer;
+    if (c) {
+      const h = c.header?.musicCarouselShelfBasicHeaderRenderer?.title || c.title;
+      shelves.push({ title: runsText(h), items: (c.contents || []).map(rawChartItem).filter(Boolean) });
+    }
+    Object.values(n).forEach(walk);
+  };
+  walk(data);
+  const withItems = shelves.filter(x => x.items.length);
+  const pick = withItems.find(x => CHART_TITLE.test(x.title)) || withItems.find(x => x.items.every(i => i.song)) || withItems[0];
+  if (!pick) throw new Error("La respuesta de YouTube Music no trae canciones (" + shelves.length + " secciones)");
+  return pick.items;
+}
 export async function fetchCountryChart(country) {
   const code = String(country || "").toUpperCase();
   if (!/^[A-Z]{2}$/.test(code)) throw new Error("País no válido");
   const yt = await getInnertube();
-  const page = await yt.actions.execute("/browse", { browseId: "FEmusic_charts", client: "YTMUSIC", formData: { selectedValues: [code] }, parse: true });
-  const tabs = page.contents?.item?.()?.tabs || [];
-  const tab = tabs.find(t => t.selected) || tabs[0];
-  const sections = tab?.content?.contents || [];
-  const shelves = [...sections].filter(n => n?.type === "MusicCarouselShelf" || n?.type === "MusicShelf" || n?.type === "MusicPlaylistShelf");
-  const tracksOf = n => (n.contents || n.items || []).map(homeItem).filter(x => x && x.kind === "track");
-  let best = null;
-  for (const n of shelves) {
-    const title = txt(n.header?.title) || txt(n.title);
-    const items = tracksOf(n);
-    if (!items.length) continue;
-    if (CHART_TITLE.test(title)) { best = { n, items }; break; }
-    best ??= { n, items };
-  }
-  if (!best) throw new Error("YouTube Music no devolvió listas para este país.");
-  let items = best.items;
-  if (items.length < 20) {
-    const link = linkId(best.n.header?.title?.runs?.[0]?.endpoint) || linkId(best.n.header?.more_content?.endpoint) || linkId(best.n.bottom_endpoint);
-    if (/^(VL)?(PL|RD|OLAK)/.test(link)) {
-      try { const pl = await fetchPlaylistPage(link); if (pl.tracks.length > items.length) items = pl.tracks; } catch {}
-    }
-  }
+  const res = await yt.actions.execute("/browse", { browseId: "FEmusic_charts", client: "YTMUSIC", formData: { selectedValues: [code] } });
+  if (!res?.success) throw new Error("YouTube Music respondió " + res?.status_code);
+  const items = rawChart(res.data);
   return items.slice(0, 50).map(x => ({ id: x.id, title: x.title, artist: x.artist, cover: x.cover, plays: null }));
-}
-
-const MIN_VIDEO_ASPECT = 1.2, AUTO_MAX_HEIGHT = 1080;
-function videoOffer(info, yt) {
-  const sd = info.streaming_data;
-  const ok = f => f.has_video && f.width && f.height && (f.url || f.signature_cipher || f.cipher);
-  const all = (sd?.adaptive_formats ?? []).filter(ok);
-
-  const mux = [...(sd?.formats ?? [])].filter(ok).sort((a, b) => b.height - a.height)[0];
-  const largest = [...all, ...(mux ? [mux] : [])].sort((a, b) => b.width * b.height - a.width * a.height)[0];
-  if (!largest || largest.width / largest.height < MIN_VIDEO_ASPECT) return null;
-  const muxed = mux ? async () => ({ height: mux.height, url: await mux.decipher(yt.session.player) }) : null;
-  const probe = document.createElement("video");
-  const playable = all.filter(f => !/vp09\.0[23]|av01\.0\.\d+M\.(10|12)/.test(f.mime_type) && probe.canPlayType(f.mime_type.replace(/;\s*/, "; ")) !== "");
-  const rank = f => (/avc1/.test(f.mime_type) ? 0 : /vp0?9/.test(f.mime_type) ? 1 : 2);
-  const byHeight = new Map();
-  for (const f of playable) { const cur = byHeight.get(f.height); if (!cur || rank(f) < rank(cur) || (rank(f) === rank(cur) && f.bitrate > cur.bitrate)) byHeight.set(f.height, f); }
-  const heights = [...byHeight.keys()].sort((a, b) => b - a);
-  const aspect = largest.width / largest.height;
-  if (!heights.length) return muxed ? { aspect, heights: [mux.height], auto: mux.height, muxed, pick: muxed } : null;
-  const auto = heights.find(h => h <= AUTO_MAX_HEIGHT) ?? heights.at(-1);
-  return {
-    aspect, heights, auto, muxed,
-
-    async pick(quality) {
-      const h = quality === "auto" ? auto : byHeight.has(quality) ? quality : heights.find(x => x <= quality) ?? heights.at(-1), f = byHeight.get(h);
-      return { height: h, url: await f.decipher(yt.session.player) };
-    },
-  };
 }
