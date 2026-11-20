@@ -24,7 +24,7 @@ export function setQuality(q) {
 export function claim() { VS.surfaces++; refresh(); return () => { VS.surfaces--; refresh(); }; }
 
 let gen = 0, loadedKey = null, timer = null, detachVid = () => {};
-const failed = new Set();
+const failed = new Set(), useMuxed = new Set(); // useMuxed: canciones cuyo vídeo adaptativo no abrió; se usa el formato combinado
 async function unload() {
   clearInterval(timer); timer = null; loadedKey = null; try { detachVid(); } catch {} detachVid = () => {};
   if (vid.getAttribute("src")) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
@@ -42,7 +42,7 @@ export async function refresh() {
   const resumeAt = au.currentTime;
   loadedKey = key;
   try {
-    const { url, height, hls } = await offer.pick(VS.quality);
+    const { url, height, hls } = useMuxed.has(song.id) && offer.muxed ? await offer.muxed() : await offer.pick(VS.quality);
     if (run !== gen) return;
     try { detachVid(); } catch {} detachVid = () => {};
     if (hls) detachVid = await attachHls(vid, url, { height: VS.quality, onLevel: () => { if (VS.ready && VS.id === song.id) { VS.height = detachVid.current?.() || VS.height; emit(); } } }); else vid.src = url;
@@ -66,12 +66,13 @@ export async function refresh() {
     if (!au.paused) await vid.play().catch(() => {});
     if (Math.abs(vid.currentTime - au.currentTime) > .25) vid.currentTime = au.currentTime + .1;
     lastSeek = performance.now();
-    Object.assign(VS, { id: song.id, ready: true, height: hls ? (detachVid.current?.() || detachVid.heights?.[0] || 0) : height, heights: hls ? (detachVid.heights || []) : offer.heights });
+    Object.assign(VS, { id: song.id, ready: true, height: hls ? (detachVid.current?.() || detachVid.heights?.[0] || 0) : height, heights: hls ? (detachVid.heights || []) : useMuxed.has(song.id) ? [height] : offer.heights });
     sync(); clearInterval(timer); timer = setInterval(sync, SYNC_MS); emit();
   } catch (e) {
     if (run !== gen) return;
     console.warn("FrikiMusic: no se pudo cargar el vídeo", e);
     loadedKey = null;
+    if (offer.muxed && !useMuxed.has(song.id)) { useMuxed.add(song.id); return refresh(); }
     // Una altura que este equipo no reproduce no debe costar la imagen: vuelve a Auto (H.264).
     if (VS.quality !== "auto") { setQuality("auto"); return; }
     failed.add(song.id); unload();

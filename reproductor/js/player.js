@@ -33,7 +33,7 @@ export async function playAt(i) {
 
 // Prueba las fuentes de audio una a una (opus, aac, formato combinado y, si hace falta, otros clientes de YouTube)
 // hasta que una suene. Así los vídeos como "The Station" también se reproducen aunque el mejor formato falle.
-let trying = false, detachAudio = () => {};
+let trying = false, detachAudio = () => {}, muxedFirstUntil = 0; // muxedFirstUntil: si los formatos adaptativos fallan, 10 min probando antes el combinado
 const resetAudio = () => { try { detachAudio(); } catch {} detachAudio = () => {}; };
 const tryUrl = (url, st, src) => new Promise(async (ok, no) => {
   const done = f => v => { clearTimeout(t); au.removeEventListener("error", bad); f(v); };
@@ -59,7 +59,9 @@ async function playSources(st, s) {
       for (const src of list) {
         if (P.song !== s) return true;
         try {
-          await tryUrl(await src.url(), st, src); console.info("FrikiMusic: sonando", tag, src.itag, src.mime); st.playing = { bitrate: src.bitrate || 0, mime: src.mime };
+          await tryUrl(await src.url(), st, src);
+          if (src.muxed && (log.length || Date.now() < muxedFirstUntil)) muxedFirstUntil = Date.now() + 10 * 60_000;
+          console.info("FrikiMusic: sonando", tag, src.itag, src.mime); st.playing = { bitrate: src.bitrate || 0, mime: src.mime };
           // El vídeo debe salir de la misma respuesta que el audio que funcionó (si no, el clip puede ser un flujo roto o faltar)
           try { const v = src.video?.(); if (v) st.video = v; } catch {}
           return true;
@@ -72,7 +74,8 @@ async function playSources(st, s) {
       }
       return false;
     };
-    if (await run(st.sources, "principal")) return;
+    const ordered = Date.now() < muxedFirstUntil ? [...st.sources.filter(x => x.muxed), ...st.sources.filter(x => !x.muxed)] : st.sources;
+    if (await run(ordered, "principal")) return;
     if (P.song !== s) return;
     if (await run(await st.more().catch(e => { log.push("otros clientes: " + e.message); return []; }), "respaldo")) return;
     throw new Error(`supported source | ${s.id} | ${log.join(" || ") || "sin fuentes"}`);

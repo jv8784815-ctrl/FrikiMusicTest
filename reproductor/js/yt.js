@@ -354,19 +354,25 @@ export async function fetchAlbumTracks(albumId) { return (await fetchAlbumPage(a
 // Se descartan los "vídeos" cuadrados (la portada del álbum) y el HDR. H.264 primero: todos los navegadores lo decodifican por hardware.
 const MIN_VIDEO_ASPECT = 1.2, AUTO_MAX_HEIGHT = 1080;
 function videoOffer(info, yt) {
-  const all = (info.streaming_data?.adaptive_formats ?? []).filter(f => f.has_video && f.width && f.height && (f.url || f.signature_cipher || f.cipher));
-  const largest = [...all].sort((a, b) => b.width * b.height - a.width * a.height)[0];
+  const sd = info.streaming_data;
+  const ok = f => f.has_video && f.width && f.height && (f.url || f.signature_cipher || f.cipher);
+  const all = (sd?.adaptive_formats ?? []).filter(ok);
+  // Formato combinado (audio+vídeo, p. ej. itag 18 a 360p): sin PO token es el único que YouTube suele dejar abrir
+  const mux = [...(sd?.formats ?? [])].filter(ok).sort((a, b) => b.height - a.height)[0];
+  const largest = [...all, ...(mux ? [mux] : [])].sort((a, b) => b.width * b.height - a.width * a.height)[0];
   if (!largest || largest.width / largest.height < MIN_VIDEO_ASPECT) return null;
+  const muxed = mux ? async () => ({ height: mux.height, url: await mux.decipher(yt.session.player) }) : null;
   const probe = document.createElement("video");
   const playable = all.filter(f => !/vp09\.0[23]|av01\.0\.\d+M\.(10|12)/.test(f.mime_type) && probe.canPlayType(f.mime_type.replace(/;\s*/, "; ")) !== "");
   const rank = f => (/avc1/.test(f.mime_type) ? 0 : /vp0?9/.test(f.mime_type) ? 1 : 2);
   const byHeight = new Map();
   for (const f of playable) { const cur = byHeight.get(f.height); if (!cur || rank(f) < rank(cur) || (rank(f) === rank(cur) && f.bitrate > cur.bitrate)) byHeight.set(f.height, f); }
   const heights = [...byHeight.keys()].sort((a, b) => b - a);
-  if (!heights.length) return null;
+  const aspect = largest.width / largest.height;
+  if (!heights.length) return muxed ? { aspect, heights: [mux.height], auto: mux.height, muxed, pick: muxed } : null;
   const auto = heights.find(h => h <= AUTO_MAX_HEIGHT) ?? heights.at(-1);
   return {
-    aspect: largest.width / largest.height, heights, auto,
+    aspect, heights, auto, muxed,
     // quality: altura fija o "auto". Si el vídeo no ofrece esa altura se usa la mejor que tenga.
     async pick(quality) {
       const h = quality === "auto" ? auto : byHeight.has(quality) ? quality : heights.find(x => x <= quality) ?? heights.at(-1), f = byHeight.get(h);
