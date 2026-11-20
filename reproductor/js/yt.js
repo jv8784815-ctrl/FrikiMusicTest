@@ -152,33 +152,56 @@ function audioSources(info, yt, aq = "auto") {
 }
 // Oferta de vídeo para HLS: el propio manifiesto (la calidad la elige hls.js / el navegador)
 const hlsVideoOffer = url => ({ aspect: 16 / 9, heights: [], auto: 0, hls: true, async pick() { return { height: 0, url, hls: true }; } });
-const whyNot = info => {
-  const st = info?.playability_status, why = st?.reason || st?.status || "sin respuesta";
-  // "Sign in to confirm you're not a bot" también contiene "confirm": no es una restricción de edad
-  if (/bot/i.test(why)) return new Error(`YouTube bloqueó la petición por sospecha de bot (${why}). Inicia sesión en music.youtube.com en este navegador, recarga la extensión y reintenta.`);
-  return new Error(/age|confirm/i.test(why) ? "Canción con restricción de edad: inicia sesión en YouTube Music (aún no soportado)." : `YouTube: ${why}`);
+// Respuestas que dicen "inicia sesión": restricción de edad o comprobación anti-bot (BitChord: AGE_GATE en resolver.ts).
+// En ambos casos una petición firmada con la cuenta del navegador (vía la extensión) suele pasar.
+const GATE = /confirm your age|age-restricted|inappropriate for some users|sign in to confirm|not a bot/i;
+const reasonOf = info => { const st = info?.playability_status; return st?.reason || st?.status || "sin respuesta"; };
+const whyNot = (info, signed = false) => {
+  const why = reasonOf(info);
+  if (signed && GATE.test(why)) return new Error(`YouTube no aceptó tu sesión para esta canción (${why}). Comprueba que tienes la sesión iniciada en music.youtube.com (y la edad verificada si es una canción con restricción).`);
+  if (/bot/i.test(why)) return new Error(`YouTube pidió verificar que no eres un bot (${why}). Inicia sesión en music.youtube.com en este navegador, recarga la extensión y reintenta.`);
+  return new Error(/age|confirm/i.test(why) ? "Canción con restricción de edad: inicia sesión en YouTube Music en este navegador." : `YouTube: ${why}`);
 };
-export async function resolveStream(videoId, aq = "auto") {
-  const yt = await getInnertube();
-  let info = await fetchInfo(yt, videoId, CLIENTS[0]), used = 0;
+// Con sesión, primero los clientes web (los que aceptan SAPISIDHASH); VISIONOS no necesita PO token, así que va primero aquí
+const SIGNED_CLIENTS = ["VISIONOS", "YTMUSIC", "WEB"];
+let signedFirstUntil = 0; // tras un bloqueo anti-bot, durante 10 min se pide directamente con la sesión
+async function resolveWith(yt, videoId, aq, clients, signed) {
+  let info = await fetchInfo(yt, videoId, clients[0]), used = 0;
   const firstErr = info;
-  for (let c = 1; info.playability_status?.status !== "OK" && c < CLIENTS.length; c++) {
-    try { const alt = await fetchInfo(yt, videoId, CLIENTS[c]); if (alt.playability_status?.status === "OK") { info = alt; used = c; } } catch {}
+  for (let c = 1; info.playability_status?.status !== "OK" && c < clients.length; c++) {
+    try { const alt = await fetchInfo(yt, videoId, clients[c]); if (alt.playability_status?.status === "OK") { info = alt; used = c; } } catch {}
   }
-  if (info.playability_status?.status !== "OK") throw whyNot(firstErr);
+  if (info.playability_status?.status !== "OK") throw Object.assign(whyNot(firstErr, signed), { gate: GATE.test(reasonOf(firstErr)), bot: /bot/i.test(reasonOf(firstErr)) });
   const sources = audioSources(info, yt, aq);
   // Otros clientes, solo si ninguna de las fuentes anteriores se deja reproducir
   const more = async () => {
     const out = [];
-    for (let c = 0; c < CLIENTS.length; c++) {
+    for (let c = 0; c < clients.length; c++) {
       if (c === used) continue;
-      try { const alt = await fetchInfo(yt, videoId, CLIENTS[c]); if (alt.playability_status?.status === "OK") out.push(...audioSources(alt, yt, aq)); } catch {}
+      try { const alt = await fetchInfo(yt, videoId, clients[c]); if (alt.playability_status?.status === "OK") out.push(...audioSources(alt, yt, aq)); } catch {}
     }
     return out;
   };
   if (!sources.length && !(await more().then(m => { sources.push(...m); return m.length }))) throw new Error("YouTube no dio una URL directa de audio para esta canción");
   const url = await sources[0].url();
-  return { url, itag: sources[0].itag, bitrate: sources[0].bitrate, sources, more, duration: info.basic_info?.duration || 0, live: !!info.basic_info?.is_live, video: videoOffer(info, yt) };
+  return { url, itag: sources[0].itag, bitrate: sources[0].bitrate, sources, more, duration: info.basic_info?.duration || 0, live: !!info.basic_info?.is_live, video: videoOffer(info, yt), signed };
+}
+export async function resolveStream(videoId, aq = "auto") {
+  const anon = async () => resolveWith(await getInnertube(), videoId, aq, CLIENTS, false);
+  const withAccount = async () => resolveWith(await getSignedInnertube(), videoId, aq, SIGNED_CLIENTS, true);
+  // Como BitChord: anónimo primero; si YouTube pide iniciar sesión (edad o bot), se repite con la cuenta del navegador
+  if (Date.now() < signedFirstUntil) { try { return await withAccount(); } catch { /* si la sesión falla, se prueba anónimo */ } }
+  try { return await anon(); }
+  catch (e) {
+    if (!e.gate || isNative) throw e; // en la app de Android no hay extensión
+    if (e.bot) signedFirstUntil = Date.now() + 10 * 60_000;
+    try { return await withAccount(); }
+    catch (e2) {
+      // Sin sesión en el navegador, la extensión lo dice así: se explica con el mensaje de siempre
+      if (/sesión de YouTube Music|not signed in/i.test(e2.message)) throw new Error(`${e.message.split(" (")[0]}: inicia sesión en music.youtube.com en este navegador y reintenta.`);
+      throw e2;
+    }
+  }
 }
 
 // Foto del artista: avatar de la búsqueda de YouTube Music (nunca la portada de una canción)
