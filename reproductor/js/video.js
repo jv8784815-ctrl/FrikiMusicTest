@@ -16,6 +16,8 @@ vid.style.cssText = "display:block;width:100%;height:100%;object-fit:contain;bac
 export const hasVideo = () => VS.ready && !!P.song && VS.id === P.song.id;
 export const qualityLabel = h => h >= 4320 ? "8K" : h >= 2160 ? "4K" : h >= 1440 ? "2K" : h >= 1080 ? "FullHD" : h >= 720 ? "HD" : h + "p";
 export function setQuality(q) {
+  if (q !== "auto") q = Number(q) || "auto";
+  cap.clear();
   if (q === "auto") localStorage.removeItem(KEY); else localStorage.setItem(KEY, String(q));
   VS.quality = q; refresh();
 }
@@ -23,7 +25,7 @@ export function setQuality(q) {
 export function claim() { VS.surfaces++; refresh(); return () => { VS.surfaces--; refresh(); }; }
 
 let gen = 0, loadedKey = null, timer = null, detachVid = () => {};
-const failed = new Set(), useMuxed = new Set();
+const failed = new Set(), useMuxed = new Set(), cap = new Map();
 async function unload() {
   clearInterval(timer); timer = null; loadedKey = null; try { detachVid(); } catch {} detachVid = () => {};
   if (vid.getAttribute("src")) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
@@ -40,8 +42,11 @@ export async function refresh() {
   const run = ++gen;
   const resumeAt = au.currentTime;
   loadedKey = key;
+  let attempted = 0;
   try {
-    const { url, height, hls } = useMuxed.has(song.id) && offer.muxed ? await offer.muxed() : await offer.pick(VS.quality);
+    const c = cap.get(song.id), q = VS.quality === "auto" ? (c ?? "auto") : Math.min(Number(VS.quality), c ?? Infinity);
+    const { url, height, hls } = useMuxed.has(song.id) && offer.muxed ? await offer.muxed() : await offer.pick(q);
+    if (!hls && !useMuxed.has(song.id)) attempted = height;
     if (run !== gen) return;
     try { detachVid(); } catch {} detachVid = () => {};
     if (hls) detachVid = await attachHls(vid, url, { height: VS.quality, onLevel: () => { if (VS.ready && VS.id === song.id) { VS.height = detachVid.current?.() || VS.height; emit(); } } }); else vid.src = url;
@@ -57,7 +62,7 @@ export async function refresh() {
         error: () => { off(); no(vid.error || new Error("vídeo")); },
       };
       for (const e in on) vid.addEventListener(e, on[e]);
-      setTimeout(() => { off(); vid.readyState >= 2 ? ok() : no(new Error("tiempo agotado")); }, 12000);
+      setTimeout(() => { off(); vid.readyState >= 2 ? ok() : no(new Error("tiempo agotado")); }, height >= 1440 ? 30000 : 15000);
     });
     if (run !== gen) return;
 
@@ -69,8 +74,10 @@ export async function refresh() {
     sync(); clearInterval(timer); timer = setInterval(sync, SYNC_MS); emit();
   } catch (e) {
     if (run !== gen) return;
-    console.warn("FrikiMusic: no se pudo cargar el vídeo", e);
+    console.warn("FrikiMusic: no se pudo cargar el vídeo" + (attempted ? ` a ${attempted}p` : ""), e);
     loadedKey = null;
+    const lower = attempted && !useMuxed.has(song.id) ? (offer.heights || []).find(h => h < attempted) : 0;
+    if (lower) { cap.set(song.id, lower); return refresh(); }
     if (offer.muxed && !useMuxed.has(song.id)) { useMuxed.add(song.id); return refresh(); }
 
     if (VS.quality !== "auto") { setQuality("auto"); return; }
