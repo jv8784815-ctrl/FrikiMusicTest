@@ -46,8 +46,9 @@ export async function refresh() {
   let attempted = 0;
   try {
     const c = cap.get(song.id), q = VS.quality === "auto" ? (c ?? "auto") : Math.min(Number(VS.quality), c ?? Infinity);
-    const { url, height, hls } = useMuxed.has(song.id) && offer.muxed ? await offer.muxed() : await offer.pick(q);
+    const { url, height, hls, mime } = useMuxed.has(song.id) && offer.muxed ? await offer.muxed() : await offer.pick(q);
     if (!hls && !useMuxed.has(song.id)) attempted = height;
+    curInfo = `${height}p ${mime || ""}`;
     if (run !== gen) return;
     try { detachVid(); } catch {} detachVid = () => {};
     if (hls) detachVid = await attachHls(vid, url, { height: VS.quality, onLevel: () => { if (VS.ready && VS.id === song.id) { VS.height = detachVid.current?.() || VS.height; emit(); } } }); else vid.src = url;
@@ -86,7 +87,10 @@ export async function refresh() {
   }
 }
 
-let lastSeek = 0;
+let lastSeek = 0, curInfo = "";
+const bufferedAt = t => { const b = vid.buffered; for (let i = 0; i < b.length; i++) if (t >= b.start(i) - .05 && t <= b.end(i)) return true; return false; };
+let lastWarn = 0;
+vid.addEventListener("waiting", () => { const n = performance.now(); if (n - lastWarn < 3000) return; lastWarn = n; const b = vid.buffered, ahead = b.length ? (b.end(b.length - 1) - vid.currentTime).toFixed(1) : "0"; console.info(`FrikiMusic [video] buffering: ${curInfo} · buffer por delante ${ahead}s · readyState ${vid.readyState}`); });
 function sync() {
   if (!VS.ready || !au.src || vid.readyState < 1) return;
   if (au.paused) { if (!vid.paused) vid.pause(); if (Math.abs(vid.currentTime - au.currentTime) > .1) vid.currentTime = au.currentTime; return; }
@@ -94,7 +98,8 @@ function sync() {
   if (vid.readyState < 3) return;
   const drift = vid.currentTime - au.currentTime, now = performance.now();
   if (Math.abs(drift) > SEEK_DRIFT) {
-    if (now - lastSeek > 2500) { vid.currentTime = au.currentTime + (drift < 0 ? .15 : 0); lastSeek = now; }
+    const target = au.currentTime + (drift < 0 ? .15 : 0);
+    if (now - lastSeek > 2500 && (bufferedAt(target) || Math.abs(drift) > 5)) { vid.currentTime = target; lastSeek = now; }
     vid.playbackRate = au.playbackRate;
   } else {
     const nudge = Math.abs(drift) > IGNORE_DRIFT ? Math.max(-.05, Math.min(.05, -drift * .5)) : 0;
