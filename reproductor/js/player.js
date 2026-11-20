@@ -10,6 +10,7 @@ const storedAq = () => { try { const v = localStorage.getItem(AQK); return AQS.i
 export const AQ = { quality: storedAq() };
 export const audioLabel = q => ({ auto: "Auto", high: "Alta", medium: "Media", low: "Baja" })[q] || "Auto";
 let reloadGen = 0, resumeAt = 0;
+const wantHeight = () => { try { return Number(localStorage.getItem("fm.vq")) || 1080; } catch { return 1080; } };
 export const P = { queue: [], idx: -1, loading: false, error: "", media: null, get song() { return this.queue[this.idx]; }, on: f => subs.add(f) };
 const emit = () => subs.forEach(f => f());
 export async function playList(list, i) { P.queue = [...list]; return playAt(i); }
@@ -26,7 +27,7 @@ export async function playAt(i) {
     P.media = st;
     await playSources(st, s);
 
-    if (s.video && (!st.video || st.video.weak) && st.findVideo && P.song === s) st.videoLookup = st.findVideo().then(v => { if (v && P.media === st && P.song === s && (!v.weak || !st.video)) { st.video = v; emit(); } }).catch(() => {});
+    if (s.video && st.findVideo && P.song === s && (st.video?.top || 0) < wantHeight()) st.videoLookup = st.findVideo(wantHeight(), st.video?.top || 0).then(v => { if (v && P.media === st && P.song === s && v.top > (st.video?.top || 0)) { st.video = v; emit(); } }).catch(() => {});
   } catch (e) { P.error = /supported source/.test(e.message) ? "El navegador no pudo cargar el audio. " + e.message.replace(/^supported source\s*\|?\s*/, "").slice(0, 300) : e.message; if (P.error) console.error("FrikiMusic:", e); }
   P.loading = false; emit();
 }
