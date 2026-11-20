@@ -6,7 +6,7 @@ import { fetchTop } from "./stats.js";
 import { S, save, applyTheme, toggleLike, isLiked, pushRecent, topArtist, artistNames } from "./store.js";
 import { P, au, playList, playAt, toggle, next, prev, updateSession } from "./player.js";
 import { fetchHomeFeed, fetchArtistPage, fetchPlaylistPage, fetchAlbumPage, fetchAlbumTracks, fetchArtistAvatar } from "./yt.js";
-import { V, lists, home, search, artist, album, queue, likes, settings } from "./views.js";
+import { V, lists, home, search, artist, album, queue, likes, settings, topGlobal, topCountry, countryName } from "./views.js";
 import { wavy } from "./wavy.js";
 import { ambient, coverColor } from "./ambient.js";
 import { pic, bindCoverFallback } from "./img.js";
@@ -16,16 +16,18 @@ import { toggleMini, bindMini, setAutoMini, miniSupported } from "./mini.js";
 import { winButton } from "./download.js";
 import { searchBarHTML, bindSearch, setBusy, closeSug } from "./search.js";
 const $ = s => document.querySelector(s), esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const routes = { home, search, artist, album, queue, likes, settings };
-const nav = [["home", "Inicio"], ["search", "Buscar"], ["queue", "Cola"], ["likes", "Me gusta"], ["settings", "Ajustes"]];
-const icons = { home: "home", search: "search", queue: "queue", likes: "heart", settings: "settings" };
+const routes = { home, search, artist, album, queue, likes, settings, top: topGlobal, toppais: topCountry };
+const topPages = { top: "ALL", toppais: "country" };
+const nav = [["home", "Inicio"], ["search", "Buscar"], ["queue", "Cola"], ["likes", "Me gusta"], ["settings", "Ajustes"], ["top", "Top FrikiMusic"], ["toppais", "Top de tu país"]];
+const icons = { home: "home", search: "search", queue: "queue", likes: "heart", settings: "settings", top: "trophy", toppais: "globe" };
 const cur = () => (location.hash.slice(2).split("?")[0] || "home");
 function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 4500); }
 
-const groups = [[null, ["search", "home"]], ["Biblioteca", ["queue", "likes"]]], names = Object.fromEntries(nav);
+const groups = [[null, ["search", "home"]], ["Descubrir", ["top", "toppais"]], ["Biblioteca", ["queue", "likes"]]], names = Object.fromEntries(nav);
+const label = k => k === "toppais" ? (V.top.country ? "Top de " + countryName(V.top.country) : names[k]) : names[k];
 function drawRail() {
   const r = $("#rail"), open = S.rail; r.classList.toggle("open", open);
-  const item = k => `<a class="item${cur() === k ? " on" : ""}" href="#/${k}" title="${names[k]}">${oicon(icons[k])}${open ? `<span>${names[k]}</span>` : ""}</a>`;
+  const item = k => `<a class="item${cur() === k ? " on" : ""}" href="#/${k}" title="${esc(label(k))}">${oicon(icons[k])}${open ? `<span>${esc(label(k))}</span>` : ""}</a>`;
   const brand = open
     ? `<div class="brand">${brandMark(30)}<span>FrikiMusic</span><button class="rbtn" data-rail aria-label="Contraer menú" title="Contraer menú">${oicon("left", 18)}</button></div>`
     : `<div class="brand"><button class="rbtn logo" data-rail aria-label="Expandir menú" title="Expandir menú">${brandMark(30)}</button></div>`;
@@ -130,7 +132,7 @@ function drawBar() {
 }
 au.addEventListener("timeupdate", () => document.querySelectorAll("[data-cur]").forEach(e => e.textContent = fmt(au.currentTime)));
 au.addEventListener("loadedmetadata", () => document.querySelectorAll("[data-dur]").forEach(e => e.textContent = fmt(au.duration)));
-let lastErr = ""; P.on(() => { drawBar(); if (cur() === "queue" || cur() === "home" || cur() === "artist" || cur() === "album") drawView(); if (P.error && P.error !== lastErr) toast(P.error); lastErr = P.error; });
+let lastErr = ""; P.on(() => { drawBar(); if (cur() === "queue" || cur() === "home" || cur() === "artist" || cur() === "album" || topPages[cur()]) drawView(); if (P.error && P.error !== lastErr) toast(P.error); lastErr = P.error; });
 
 const cache = new Map(); let tok = 0;
 async function runSearch(q, force) {
@@ -147,13 +149,14 @@ async function runSearch(q, force) {
   V.loading = false; setBusy(false); drawView();
 }
 $("#searchForm").addEventListener("submit", e => { e.preventDefault(); const q = $("#q").value.trim(); if (q) runSearch(q); });
-addEventListener("hashchange", drawView);
+addEventListener("hashchange", () => { drawView(); ensureTop(); });
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-artist],[data-release],[data-playlist],[data-top],[data-play],[data-like],[data-act],button[data-accent],[data-rail],[data-focus]"); if (!t) return;
+  const t = e.target.closest("[data-artist],[data-release],[data-playlist],[data-top],[data-tp],[data-play],[data-like],[data-act],button[data-accent],[data-rail],[data-focus]"); if (!t) return;
   const d = t.dataset;
   if (d.artist !== undefined) { e.stopPropagation(); openArtist(d.artist, d.artistId || ""); }
   else if (d.release !== undefined) { e.stopPropagation(); openAlbum(d.release); }
   else if (d.top) { const [k, v] = d.top.split(":"); V.top[k] = v; V.top.data = null; loadTop(); drawView(); }
+  else if (d.tp) { const T = V.tops[topPages[cur()]]; if (T) { T.period = d.tp; T.data = null; loadTopPage(cur()); } }
   else if (d.playlist !== undefined) { e.stopPropagation(); openAlbum(d.playlist, "playlist"); }
   else if (d.like !== undefined) { e.stopPropagation(); const s = [...V.results, ...P.queue, ...S.likes, ...S.history].find(x => x.id === d.like); s && toggleLike(s); drawView(); drawBar(); }
   else if (d.play) {
@@ -225,8 +228,29 @@ async function loadTop() {
   try { const d = await fetchTop(T.period, T.scope); if (T.period + T.scope !== key) return; topCache.set(key, { d, t: Date.now() }); T.data = d; T.country = d.country || T.country; T.ok = true; }
   catch { if (T.period + T.scope === key && T.ok) T.data = { items: [] }; }
   if (T.period + T.scope === key) T.loading = false;
+  drawRail();
   if (cur() === "home") drawView();
 }
+async function loadTopPage(k) {
+  const scope = topPages[k], T = V.tops[scope], key = T.period + scope, hit = topCache.get(key);
+  if (hit && Date.now() - hit.t < 12e4) {
+    T.data = hit.d; T.err = ""; T.loading = false;
+    if (hit.d.country && hit.d.country !== V.top.country) { V.top.country = hit.d.country; drawRail(); }
+    if (cur() === k) drawView();
+    return;
+  }
+  T.loading = true; T.err = "";
+  if (cur() === k) drawView();
+  try {
+    const d = await fetchTop(T.period, scope);
+    topCache.set(key, { d, t: Date.now() });
+    if (T.period + scope === key) { T.data = d; if (d.country && d.country !== V.top.country) { V.top.country = d.country; drawRail(); } }
+  } catch { if (T.period + scope === key) { T.data = null; T.err = "No se pudo cargar el Top. Inténtalo de nuevo en un momento."; } }
+  if (T.period + scope === key) T.loading = false;
+  if (cur() === k) drawView();
+}
+function ensureTop() { const k = cur(); if (topPages[k]) loadTopPage(k); }
 loadHome();
 loadTopArtist();
 loadTop();
+ensureTop();

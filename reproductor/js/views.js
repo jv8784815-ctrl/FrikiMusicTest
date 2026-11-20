@@ -5,7 +5,7 @@ import { pic, hqPx } from "./img.js";
 import { winButton } from "./download.js";
 import { extBanner } from "./ext.js";
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-export const V = { top: { period: "week", scope: "ALL", data: null, loading: false, ok: false, country: "" }, topArtist: null, q: "", results: [], feed: [], home: [], loading: false, ext: null, filter: "all", err: "", artist: "", artistId: "", artistPage: null, artistSongs: [], artistShelfTracks: {}, artistLoading: false, artistErr: "", albumId: "", albumPage: null, albumTracks: [], albumLoading: false, albumErr: "" };
+export const V = { tops: { ALL: { period: "day", data: null, loading: false, err: "" }, country: { period: "day", data: null, loading: false, err: "" } }, top: { period: "week", scope: "ALL", data: null, loading: false, ok: false, country: "" }, topArtist: null, q: "", results: [], feed: [], home: [], loading: false, ext: null, filter: "all", err: "", artist: "", artistId: "", artistPage: null, artistSongs: [], artistShelfTracks: {}, artistLoading: false, artistErr: "", albumId: "", albumPage: null, albumTracks: [], albumLoading: false, albumErr: "" };
 
 export const shown = () => V.filter === "video" ? V.results.filter(s => s.video) : V.filter === "song" ? V.results.filter(s => !s.video) : V.results;
 const hl = (t, q) => {
@@ -24,7 +24,8 @@ export function mixes() {
   for (const s of [...S.history, ...S.likes]) { if (seen.has(s.id) || !s.artist) continue; seen.add(s.id); (by.get(s.artist) ?? by.set(s.artist, []).get(s.artist)).push(s); }
   return [...by].filter(([, l]) => l.length > 1).sort((a, b) => b[1].length - a[1].length).slice(0, 8).map(([artist, songs]) => ({ artist, songs }));
 }
-export const lists = () => ({ search: shown(), artist: V.artistSongs, album: V.albumTracks, ...V.artistShelfTracks, queue: P.queue, likes: S.likes, history: S.history, feed: V.feed, ...Object.fromEntries(V.home.map((h, i) => ["h" + i, h.items.filter(isTrack)])), top: (V.top.data?.items || []).map(x => ({ id: x.id, title: x.title, artist: x.artist, cover: x.cover, meta: "", video: false })), ta: V.topArtist?.songs || [], tc: V.topArtist?.collabs || [], ...Object.fromEntries(mixes().map((m, i) => ["m" + i, m.songs])) });
+const topItems = d => (d?.items || []).map(x => ({ id: x.id, title: x.title, artist: x.artist, cover: x.cover, meta: "", video: false }));
+export const lists = () => ({ search: shown(), artist: V.artistSongs, album: V.albumTracks, ...V.artistShelfTracks, queue: P.queue, likes: S.likes, history: S.history, feed: V.feed, ...Object.fromEntries(V.home.map((h, i) => ["h" + i, h.items.filter(isTrack)])), top: topItems(V.top.data), tg: topItems(V.tops.ALL.data), tp: topItems(V.tops.country.data), ta: V.topArtist?.songs || [], tc: V.topArtist?.collabs || [], ...Object.fromEntries(mixes().map((m, i) => ["m" + i, m.songs])) });
 const artistLink = (a, id) => `<button class="artist-link" data-artist="${esc(a)}" data-artist-id="${esc(id || "")}">${esc(a)}</button>`;
 const row = (s, l, i, q) => `<div class="row${P.song?.id === s.id ? " now" : ""}" tabindex="0" data-play="${l}:${i}">
   ${pic(s.cover, 168, 'loading="lazy"')}<div><b>${P.song?.id === s.id && !au.paused ? eq : ""}${hl(s.title, q)}${vb(s)}</b><span>${artistLink(s.artist, s.artistId)}</span></div>
@@ -42,8 +43,9 @@ const secHead = sc => {
   return `<div class="sec"><div class="sech">${strap}<h2>${inner}</h2></div></div>`;
 };
 const PERIODS = [["day", "Hoy"], ["week", "Esta semana"], ["month", "Este mes"]];
-const countryName = c => { try { return new Intl.DisplayNames(["es"], { type: "region" }).of(c) || c; } catch { return c; } };
-const topRow = (s, i) => `<div class="mini rank${P.song?.id === s.id ? " now" : ""}" tabindex="0" data-play="top:${i}"><i class="rk">${i + 1}</i>${pic(s.cover, 120, 'loading="lazy"')}<div><b>${esc(s.title)}</b><span>${esc(s.artist)} • ${s.plays} ${s.plays === 1 ? "reproducción" : "reproducciones"}</span></div></div>`;
+export const countryName = c => { try { return new Intl.DisplayNames(["es"], { type: "region" }).of(c) || c; } catch { return c; } };
+const rankRow = key => (s, i) => `<div class="mini rank${P.song?.id === s.id ? " now" : ""}" tabindex="0" data-play="${key}:${i}"><i class="rk">${i + 1}</i>${pic(s.cover, 120, 'loading="lazy"')}<div><b>${esc(s.title)}</b><span>${esc(s.artist)} • ${s.plays} ${s.plays === 1 ? "reproducción" : "reproducciones"}</span></div></div>`;
+const topRow = rankRow("top");
 const topBlock = () => {
   const T = V.top;
   if (!S.cfg.home.top || !T.ok) return "";
@@ -55,6 +57,23 @@ const topBlock = () => {
   const place = T.scope === "country" && cn ? "de " + esc(cn) : "global";
   return `<div class="sec"><div class="sech"><small class="strap">Lo más escuchado en FrikiMusic</small><h2>Top ${place}</h2></div></div><div class="top-chips">${chips}</div>${list}`;
 };
+const TOP_SUB = { day: "Lo más escuchado hoy", week: "Lo más escuchado esta semana", month: "Lo más escuchado este mes" };
+const topPage = scope => {
+  const T = V.tops[scope], cn = V.top.country ? countryName(V.top.country) : "", global = scope === "ALL", key = global ? "tg" : "tp";
+  const title = global ? "Top FrikiMusic" : cn ? "Top de " + esc(cn) : "Top de tu país";
+  const where = global ? " en todo el mundo" : cn ? " en " + esc(cn) : "";
+  const chips = PERIODS.map(([k, l]) => `<button class="chip${T.period === k ? " on" : ""}" data-tp="${k}" aria-pressed="${T.period === k}">${l}</button>`).join("");
+  const items = T.data?.items || [];
+  let body;
+  if (T.loading) body = `<p class="muted">Cargando…</p>`;
+  else if (T.err) body = `<p class="muted">${esc(T.err)}</p>`;
+  else if (!global && T.data && !T.data.country) body = `<p class="muted">No pudimos detectar tu país, así que no hay un Top local para mostrar.</p>`;
+  else if (items.length) body = `<div class="toplist">${items.map(rankRow(key)).join("")}</div>`;
+  else body = `<p class="muted">Aún no hay suficientes reproducciones en este periodo. Las canciones se cuentan después de 30 segundos de reproducción.</p>`;
+  return `<h1>${title}</h1><p class="muted">${TOP_SUB[T.period]}${where}</p><div style="height:14px"></div><div class="top-chips">${chips}</div>${body}`;
+};
+export const topGlobal = () => topPage("ALL");
+export const topCountry = () => topPage("country");
 const artistBlock = () => {
   const t = V.topArtist, H = S.cfg.home;
   if (!H.artist || !t || (!t.songs.length && !t.collabs.length)) return "";
