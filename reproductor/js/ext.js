@@ -2,7 +2,7 @@
 import { isNative } from "./native.js";
 export const EXT_ZIP = "/FrikiMusic-Bridge.zip";
 // Versión del zip que se publica. Súbela cuando cambies la extensión: quien tenga una anterior verá «Actualización disponible».
-export const EXT_LATEST = "0.3.5";
+export const EXT_LATEST = "0.3.6";
 export const X = { ok: null, v: "", open: undefined };
 export const needsExt = !isNative;
 

@@ -119,7 +119,7 @@ async function homeRaw() {
 }
 async function home() { return parseHome(await homeRaw()); }
 
-const LYRIC_HOSTS = new Set(["lrc.red", "lyrics-api.binimum.org", "lyrics-api.boidu.dev", "unison.boidu.dev", "lyricsplus.prjktla.my.id", "lyricsplus.binimum.org", "lrclib.net"]);
+const LYRIC_HOSTS = new Set(["lrc.red", "lyrics-api.binimum.org", "lyrics-api.boidu.dev", "unison.boidu.dev", "lyricsplus.prjktla.my.id", "lyricsplus.binimum.org", "lrclib.net", "api-lyrics.simpmusic.org", "lyrics.paxsenix.org", "lyrics.kugou.com", "www.megalobiz.com"]);
 async function lyrics({ url }) {
   const u = new URL(url);
   if (u.protocol !== "https:" || !LYRIC_HOSTS.has(u.hostname)) throw new Error("Host de letras no permitido");

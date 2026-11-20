@@ -310,6 +310,116 @@ async function unison(q) {
   if (d.syncType?.toLowerCase() === "plain") return fromLines(plainLines(text));
   const e = parseEnhancedLrc(text); return fromLines(e.length ? e : parseLrc(text));
 }
+const num = v => typeof v === "number" && isFinite(v) ? v : typeof v === "string" && v.trim() && isFinite(+v) ? +v : null;
+const pickNum = (o, keys) => { for (const k of keys) { const n = num(o?.[k]); if (n !== null) return n; } return null; };
+const START_KEYS = ["timestamp", "startTime", "start", "time", "begin", "startMs"], END_KEYS = ["endtime", "endTime", "end", "endMs"];
+function fromTimed(arr, durationMs = 0) {
+  if (!Array.isArray(arr) || !arr.length) return null;
+  const starts = arr.map(it => it && typeof it === "object" ? pickNum(it, START_KEYS) : null).filter(n => n !== null);
+  if (!starts.length) return null;
+  const k = durationMs > 30000 && Math.max(...starts) <= durationMs / 1000 * 1.05 ? 1000 : 1;
+  const out = [];
+  for (const it of arr) {
+    if (!it || typeof it !== "object") continue;
+    const start = pickNum(it, START_KEYS), end = pickNum(it, END_KEYS);
+    const parts = [it.text, it.syllabus, it.words, it.syllables].find(Array.isArray);
+    if (parts) {
+      const runs = parts.filter(p => p && typeof p.text === "string" && pickNum(p, START_KEYS) !== null).map(p => {
+        const a = pickNum(p, START_KEYS) * k, b = pickNum(p, END_KEYS);
+        return { startMs: a, endMs: b !== null ? b * k : a + (num(p.duration) ?? 0) * k, raw: p.text };
+      });
+      const words = wordsFromRuns(runs, true);
+      if (words.length) { out.push(line(Math.min(start !== null ? start * k : words[0].startMs, words[0].startMs), words.map(w => w.text).join(" "), { words })); continue; }
+    }
+    const text = [it.text, it.line, it.lyric, it.content].find(t => typeof t === "string") ?? "";
+    if (start !== null) out.push(line(start * k, text.trim(), { sungUntilMs: end !== null ? end * k : null }));
+  }
+  out.sort((a, b) => a.timeMs - b.timeMs);
+  return out.some(l => l.text) ? { lines: withInstrumentalGaps(out) } : null;
+}
+const asList = r => Array.isArray(r) ? r : [r?.data, r?.results, r?.songs, r?.result?.songs, r?.candidates, r?.items].find(Array.isArray) ?? [];
+const fromBody = (body, q) => {
+  if (!body) return null;
+  const j = json(body);
+  if (Array.isArray(j)) return fromTimed(j, q.durationMs);
+  for (const key of ["lyrics", "data", "result", "lines"]) if (Array.isArray(j?.[key])) { const t = fromTimed(j[key], q.durationMs); if (t) return t; }
+  return parseProvider(body);
+};
+
+async function simpmusic(q) {
+  if (!q.videoId) return null;
+  const r = json(await get(`https://api-lyrics.simpmusic.org/v1/${encodeURIComponent(q.videoId)}`));
+  const items = asList(r).concat(r?.data && !Array.isArray(r.data) ? [r.data] : []).filter(x => x && typeof x === "object");
+  const want = secs(q.durationMs);
+  items.sort((a, b) => Math.abs((num(a.durationSeconds) ?? want ?? 0) - (want ?? 0)) - Math.abs((num(b.durationSeconds) ?? want ?? 0) - (want ?? 0)));
+  for (const d of items) {
+    const rich = typeof d.richSyncLyrics === "string" ? d.richSyncLyrics.trim() : "";
+    if (rich) {
+      const j = json(rich), t = Array.isArray(j) ? fromTimed(j, q.durationMs) : null;
+      if (t) return t;
+      const e = parseEnhancedLrc(rich); if (e.length) return { lines: e };
+    }
+    const synced = typeof d.syncedLyrics === "string" ? d.syncedLyrics.trim() : "";
+    if (synced) { const l = parseLrc(synced); if (l.length) return { lines: l }; }
+  }
+  const plain = items.map(d => d.plainLyric ?? d.plainLyrics).find(t => typeof t === "string" && t.trim());
+  return plain ? fromLines(plainLines(plain)) : null;
+}
+
+const PAX = "https://lyrics.paxsenix.org";
+const paxPick = (list, q) => {
+  const want = q.durationMs, dur = it => { const n = pickNum(it, ["duration", "durationMs", "time"]); return n === null ? 0 : n < 1000 ? n * 1000 : n; };
+  const ranked = list.map(it => ({ it, d: want && dur(it) ? Math.abs(dur(it) - want) : 0 })).sort((a, b) => a.d - b.d);
+  return (ranked.find(x => !want || x.d <= 6000) ?? null)?.it ?? null;
+};
+async function paxsenix(q) {
+  const query = `${q.title} ${q.artist}`;
+  const am = paxPick(asList(json(await get(urlWith(`${PAX}/apple-music/search`, { q: query })))), q);
+  const amId = am?.id ?? am?.songId;
+  if (amId) {
+    const t = fromBody(await get(urlWith(`${PAX}/apple-music/lyrics`, { id: amId, ttml: "true" })), q);
+    if (t) return t;
+  }
+  const ne = paxPick(asList(json(await get(urlWith(`${PAX}/netease/search`, { q: query })))), q);
+  const neId = ne?.id ?? ne?.songId;
+  return neId ? fromBody(await get(urlWith(`${PAX}/netease/lyrics`, { id: neId })), q) : null;
+}
+async function musixmatch(q) {
+  const base = { t: q.title, a: q.artist, d: secs(q.durationMs) };
+  for (const type of ["word", "default"]) {
+    const t = fromBody(await get(urlWith(`${PAX}/musixmatch/lyrics`, { ...base, type })), q);
+    if (t) return t;
+  }
+  return null;
+}
+
+const b64text = b => { const bin = atob(b.replace(/\s/g, "")); return new TextDecoder("utf-8").decode(Uint8Array.from(bin, c => c.charCodeAt(0))); };
+async function kugou(q) {
+  const found = json(await get(urlWith("https://lyrics.kugou.com/search", { ver: 1, man: "yes", client: "pc", keyword: `${q.artist} - ${q.title}`, duration: q.durationMs || "", hash: "" })));
+  const c = paxPick(asList(found), q);
+  if (!c?.id || !c?.accesskey) return null;
+  const d = json(await get(urlWith("https://lyrics.kugou.com/download", { ver: 1, client: "pc", id: c.id, accesskey: c.accesskey, fmt: "lrc", charset: "utf8" })));
+  if (!d?.content) return null;
+  let text; try { text = b64text(d.content); } catch { return null; }
+  const e = parseEnhancedLrc(text), l = e.length ? e : parseLrc(text);
+  return l.length ? { lines: l } : null;
+}
+
+const decodeHtml = t => t.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&nbsp;/g, " ");
+async function megalobiz(q) {
+  const html = await get(urlWith("https://www.megalobiz.com/search/all", { qry: `${q.artist} ${q.title}`, "searchButton.x": 0, "searchButton.y": 0 }));
+  if (!html) return null;
+  const hits = [...html.matchAll(/<a[^>]+href="(\/lrc\/maker\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)].map(m => ({ href: m[1], title: decodeHtml(m[2]).trim() }));
+  const want = norm(q.title), ranked = hits.filter(h => norm(h.title).includes(want)).concat(hits.filter(h => !norm(h.title).includes(want)));
+  for (const h of ranked.slice(0, 3)) {
+    const page = await get(new URL(h.href, "https://www.megalobiz.com").toString());
+    const m = page && /<span[^>]+id="lrc_\d+_lyrics"[^>]*>([\s\S]*?)<\/span>/i.exec(page);
+    if (!m) continue;
+    const text = decodeHtml(m[1]), e = parseEnhancedLrc(text), l = e.length ? e : parseLrc(text);
+    if (l.length) return { lines: l };
+  }
+  return null;
+}
 const MIRRORS = ["https://lyricsplus.prjktla.my.id", "https://lyricsplus.binimum.org"];
 let goodMirror = null;
 function parseLyricsPlus(r) {
@@ -370,6 +480,11 @@ export const SOURCES = [
   { id: "better-lyrics-portato", label: "QQ Music · Portato", detail: "Karaoke sincronizado por medio de BetterLyrics" },
   { id: "lyrics-plus", label: "LyricsPlus", detail: "Sílaba a sílaba, en espejos de la comunidad" },
   { id: "unison", label: "Unison", detail: "Aportadas por oyentes" },
+  { id: "simpmusic", label: "SimpMusic", detail: "Comunidad, indexadas por vídeo de YouTube" },
+  { id: "paxsenix", label: "PaxSenix", detail: "Apple Music y NetEase por PaxSenix" },
+  { id: "musixmatch", label: "Musixmatch", detail: "Sincronizadas, por PaxSenix" },
+  { id: "kugou", label: "KuGou", detail: "Líneas sincronizadas de KuGou" },
+  { id: "megalobiz", label: "Megalobiz", detail: "Aportadas por la comunidad, solo con la extensión" },
   { id: "lrclib", label: "LRCLIB", detail: "Solo líneas, siempre disponible" },
 ];
 const CREDITS = [/\s*[([]\s*(feat|ft|featuring|with)\b[^)\]]*[)\]]/gi, /\s+(feat|ft|featuring)\.?\s+.*$/gi,
@@ -397,11 +512,11 @@ export async function lookupLyrics(song, { only, onSource } = {}) {
   const hit = cache.get(key); if (hit && Date.now() - hit.at < 12 * 3600e3) return hit.result;
 
   const feat = CREDIT.exec(song.title)?.[1]?.trim() || null;
-  const q = { rawTitle: song.title.trim(), feat, title: forSearch(song.title.replace(CREDIT_G, " ")), artist: artistForSearch(song.artist), durationMs: dur, album: song.album || null, isrc: null };
+  const q = { rawTitle: song.title.trim(), feat, title: forSearch(song.title.replace(CREDIT_G, " ")), artist: artistForSearch(song.artist), durationMs: dur, album: song.album || null, isrc: null, videoId: song.id || null };
   let ident = null;
   if (sequence.includes("bini")) { ident = await withTimeout(biniIdentify(q).catch(() => null), 2500); if (ident?.isrc) q.isrc = ident.isrc; }
   const docs = new Map(), doc = url => { if (!docs.has(url)) docs.set(url, get(url)); return docs.get(url); };
-  const fetchFrom = id => ({ "lrc-red": () => lrcRed(q, doc), bini: () => bini(q, doc, ident), "better-lyrics": () => betterLyrics(q), "better-lyrics-portato": () => betterLyricsPortato(q), "lyrics-plus": () => lyricsPlus(q), unison: () => unison(q), lrclib: () => lrclib(q) })[id]();
+  const fetchFrom = id => ({ "lrc-red": () => lrcRed(q, doc), bini: () => bini(q, doc, ident), "better-lyrics": () => betterLyrics(q), "better-lyrics-portato": () => betterLyricsPortato(q), "lyrics-plus": () => lyricsPlus(q), unison: () => unison(q), simpmusic: () => withTimeout(simpmusic(q), 5000), paxsenix: () => withTimeout(paxsenix(q), 7000), musixmatch: () => withTimeout(musixmatch(q), 6000), kugou: () => withTimeout(kugou(q), 6000), megalobiz: () => withTimeout(megalobiz(q), 8000), lrclib: () => lrclib(q) })[id]();
   const run = id => { onSource?.(id, "pending"); return fetchFrom(id).catch(() => null).then(p => { const r = p?.lines.some(l => l.text.trim()) ? toResult(id, p) : null; onSource?.(id, r ? "found" : "missing"); return r; }); };
   const racing = sequence.map(id => run(id));
   let plain = null, winner = null;

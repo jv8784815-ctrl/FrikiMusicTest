@@ -35,7 +35,39 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
     onSeek?.(Number(row.dataset.t) / 1000); manualUntil = 0;
   });
 
+  const GAP = 450, MIN = 220, TAU = 70, timing = new WeakMap(), fin = new Set();
+  let lastNow = 0;
+  function times(row) {
+    let T = timing.get(row); if (T) return T;
+    const all = [...row.querySelectorAll(".sy:not(.ln)")], e = new Array(all.length), a = all.map(x => +x.dataset.a), b = all.map(x => +x.dataset.b);
+    for (const grp of [all.filter(x => !x.closest(".bgv")), all.filter(x => x.closest(".bgv"))]) {
+      grp.forEach((x, j) => {
+        const i = all.indexOf(x), nxt = grp[j + 1] ? a[all.indexOf(grp[j + 1])] : null;
+        let end = Math.max(b[i], a[i] + MIN);
+        if (nxt !== null) end = nxt - b[i] <= GAP ? Math.max(nxt, a[i] + MIN) : Math.min(end, nxt);
+        e[i] = Math.max(end, a[i] + 1);
+      });
+    }
+    T = { s: all, a, e }; timing.set(row, T); return T;
+  }
+  function sweep(row, t, dt) {
+    const T = times(row); let done = true;
+    const k = 1 - Math.exp(-dt / TAU);
+    for (let i = 0; i < T.s.length; i++) {
+      const s = T.s[i], a = T.a[i], e = T.e[i];
+      const target = t <= a ? 0 : t >= e ? 100 : (t - a) / (e - a) * 100;
+      if (target < 100) done = false;
+      const prev = s._k ?? 0;
+      let v = target < prev - 2 || Math.abs(target - prev) > 70 ? target : prev + (target - prev) * k;
+      if (target === 100 && v > 99.2) v = 100;
+      if (Math.abs(v - prev) > .05 || v === 100 || v === 0) { s._k = v; s.style.setProperty("--k", v.toFixed(2)); }
+    }
+    return done;
+  }
   function setActive(idx) {
+    const old = active;
+    for (const r of fin) r.classList.remove("fin"); fin.clear();
+    if (idx === old + 1 && old >= 0 && rows[old] && !rows[old].classList.contains("gap")) { rows[old].classList.add("fin"); fin.add(rows[old]); }
     active = idx;
     rows.forEach((r, i) => { r.classList.toggle("on", i === idx); r.classList.toggle("past", i < idx); });
     if (idx >= 0) center(rows[idx]);
@@ -95,10 +127,9 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
     if (idx < 0) return;
     if (rows[idx].classList.contains("gap")) { box.style.setProperty("--beat", "0"); gapFrame(rows[idx], idx, t); return; }
     beat(rows[idx], idx, t);
-    for (const s of rows[idx].querySelectorAll(".sy:not(.ln)")) {
-      const a = +s.dataset.a, b = +s.dataset.b;
-      s.style.setProperty("--k", t <= a ? 0 : t >= b ? 100 : ((t - a) / (b - a)) * 100);
-    }
+    const now = performance.now(), dt = Math.min(100, now - (lastNow || now)); lastNow = now;
+    sweep(rows[idx], t, dt);
+    for (const r of fin) if (sweep(r, t, dt)) { r.classList.remove("fin"); fin.delete(r); }
   }
   const start = () => { if (!raf) raf = requestAnimationFrame(frame); };
   const stop = () => { cancelAnimationFrame(raf); raf = 0; };
