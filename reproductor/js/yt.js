@@ -180,6 +180,7 @@ async function resolveWith(yt, videoId, aq, clients, signed) {
   console.info(`[FrikiMusic] ${signed ? "con sesión" : "anónimo"} ${clients[used]} OK · audio: ${sources.length} fuentes · vídeo: ${vf.length} formatos (${vf.filter(f => f.url || f.signature_cipher || f.cipher).length} con URL)`);
 
   const findVideo = async () => {
+    let weakOne = null;
     for (let c = 0; c < clients.length; c++) {
       if (c === used) continue;
       try {
@@ -187,10 +188,11 @@ async function resolveWith(yt, videoId, aq, clients, signed) {
         if (alt.playability_status?.status !== "OK") continue;
         const v = videoOffer(alt, yt);
         console.info(`[FrikiMusic] vídeo vía ${clients[c]}: ${v ? v.heights.join(", ") + "p" : "sin formatos utilizables"}`);
-        if (v) return v;
+        if (v && !v.weak) return v;
+        weakOne ??= v;
       } catch (e) { console.warn(`[FrikiMusic] vídeo vía ${clients[c]} falló:`, e?.message || e); }
     }
-    return null;
+    return weakOne;
   };
 
   const more = async () => {
@@ -467,10 +469,11 @@ function videoOffer(info, yt) {
   for (const f of playable) { const cur = byHeight.get(f.height); if (!cur || rank(f) < rank(cur) || (rank(f) === rank(cur) && f.bitrate > cur.bitrate)) byHeight.set(f.height, f); }
   const heights = [...byHeight.keys()].sort((a, b) => b - a);
   const aspect = largest.width / largest.height;
-  if (!heights.length) return muxed ? { aspect, heights: [mux.height], auto: mux.height, muxed, pick: muxed } : null;
+  if (!heights.length) console.info(`[FrikiMusic] sin formatos de vídeo adaptativos reproducibles (${all.length} con URL, de ${(sd?.adaptive_formats ?? []).filter(f => f.has_video).length}):`, [...new Set(all.map(f => f.mime_type))].slice(0, 6));
+  if (!heights.length) return muxed ? { aspect, heights: [mux.height], auto: mux.height, muxed, pick: muxed, weak: true } : null;
   const auto = heights.find(h => h <= AUTO_MAX_HEIGHT) ?? heights.at(-1);
   return {
-    aspect, heights, auto, muxed,
+    aspect, heights, auto, muxed, weak: heights[0] <= (mux?.height || 0),
 
     async pick(quality) {
       const h = quality === "auto" ? auto : byHeight.has(quality) ? quality : heights.find(x => x <= quality) ?? heights.at(-1), f = byHeight.get(h);

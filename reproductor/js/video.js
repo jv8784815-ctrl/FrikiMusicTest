@@ -24,10 +24,10 @@ export function setQuality(q) {
 
 export function claim() { VS.surfaces++; refresh(); return () => { VS.surfaces--; refresh(); }; }
 
-let gen = 0, loadedKey = null, timer = null, detachVid = () => {};
+let gen = 0, loadedKey = null, loadedOffer = null, timer = null, detachVid = () => {};
 const failed = new Set(), useMuxed = new Set(), cap = new Map();
 async function unload() {
-  clearInterval(timer); timer = null; loadedKey = null; try { detachVid(); } catch {} detachVid = () => {};
+  clearInterval(timer); timer = null; loadedKey = null; loadedOffer = null; try { detachVid(); } catch {} detachVid = () => {};
   if (vid.getAttribute("src")) { vid.pause(); vid.removeAttribute("src"); vid.load(); }
   if (VS.ready || VS.id) { VS.ready = false; VS.id = null; VS.height = null; VS.heights = []; emit(); }
 }
@@ -35,13 +35,14 @@ export async function refresh() {
   const song = P.song, offer = P.media?.video;
   if (!song || !offer || !S.cfg.video || VS.surfaces <= 0 || failed.has(song.id)) { gen++; return unload(); }
   const key = `${song.id}:${VS.quality}`;
-  if (key === loadedKey) return;
+  if (key === loadedKey && offer === loadedOffer) return;
+  if (offer !== loadedOffer && !offer.weak) useMuxed.delete(song.id);
   if (offer.hls && VS.ready && VS.id === song.id && detachVid.setHeight) {
     loadedKey = key; detachVid.setHeight(VS.quality); VS.height = detachVid.current() || VS.height; emit(); return;
   }
   const run = ++gen;
   const resumeAt = au.currentTime;
-  loadedKey = key;
+  loadedKey = key; loadedOffer = offer;
   let attempted = 0;
   try {
     const c = cap.get(song.id), q = VS.quality === "auto" ? (c ?? "auto") : Math.min(Number(VS.quality), c ?? Infinity);

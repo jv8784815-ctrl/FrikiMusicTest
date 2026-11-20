@@ -26,7 +26,7 @@ export async function playAt(i) {
     P.media = st;
     await playSources(st, s);
 
-    if (s.video && !st.video && st.findVideo && P.song === s) st.videoLookup = st.findVideo().then(v => { if (v && P.media === st && P.song === s) { st.video = v; emit(); } }).catch(() => {});
+    if (s.video && (!st.video || st.video.weak) && st.findVideo && P.song === s) st.videoLookup = st.findVideo().then(v => { if (v && P.media === st && P.song === s && (!v.weak || !st.video)) { st.video = v; emit(); } }).catch(() => {});
   } catch (e) { P.error = /supported source/.test(e.message) ? "El navegador no pudo cargar el audio. " + e.message.replace(/^supported source\s*\|?\s*/, "").slice(0, 300) : e.message; if (P.error) console.error("FrikiMusic:", e); }
   P.loading = false; emit();
 }

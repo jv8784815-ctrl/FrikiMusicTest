@@ -141,7 +141,7 @@ function update() {
 
   const vq = $(f, "[data-vq]");
   vq.hidden = false;
-  vq.textContent = video && VS.heights.length > 1 ? qualityLabel(VS.quality === "auto" || !VS.heights.includes(VS.quality) ? VS.height : VS.quality) : "♪ " + audioLabel(AQ.quality);
+  vq.textContent = video && VS.heights.length > 1 ? qualityLabel(VS.quality === "auto" || !VS.heights.includes(VS.quality) ? VS.height : VS.quality) : video && VS.height ? qualityLabel(VS.height) : "♪ " + audioLabel(AQ.quality);
 
   const colEl = $(f, "[data-col]"); colEl.hidden = !col;
   $(f, '[data-panel="lyrics"]').setAttribute("aria-pressed", panel === "lyrics");
