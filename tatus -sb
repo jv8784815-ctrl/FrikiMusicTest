@@ -1,0 +1,115 @@
+[33mcommit 271d0dab08b5a0b2df83badd817c98ac506777c0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: jv8784815-ctrl <jv8784815@ejemplo.com>
+Date:   Thu Nov 19 21:39:35 2026 -0500
+
+    Descripción corta del cambio
+
+ FrikiMusic-Bridge.zip | Bin [31m42801[m -> [32m43073[m bytes
+ reproductor/js/ext.js |   4 [32m++[m[31m--[m
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+[33mcommit 3b2c15fca1fe237918bd4703ce18b743001f7daf[m
+Author: jv8784815-ctrl <jv8784815@ejemplo.com>
+Date:   Thu Nov 19 21:35:19 2026 -0500
+
+    Aviso de extensión con descarga y pasos de instalación
+
+ FrikiMusic-Bridge.zip          | Bin [31m0[m -> [32m42801[m bytes
+ reproductor/css/components.css |   5 [32m+++++[m
+ reproductor/js/ext.js          |  37 [32m+++++++++++++++++++++++++++++++++++++[m
+ reproductor/js/main.js         |   7 [32m++++[m[31m---[m
+ reproductor/js/settings.js     |   4 [32m++++[m
+ reproductor/js/views.js        |   9 [32m+++++[m[31m----[m
+ 6 files changed, 55 insertions(+), 7 deletions(-)
+
+[33mcommit 08171b31231e3b2885f35e49562acf2df4d4f1f9[m
+Author: jv8784815-ctrl <jv8784815@ejemplo.com>
+Date:   Thu Nov 19 21:17:34 2026 -0500
+
+    Initial commit
+
+ README.md                           |     2 [32m+[m
+ Robots.txt                          |     5 [32m+[m
+ api/_redis.js                       |    39 [32m+[m
+ api/_windows.js                     |    77 [32m+[m
+ api/downloads.js                    |   102 [32m+[m
+ api/play.js                         |    56 [32m+[m
+ api/top.js                          |    40 [32m+[m
+ api/windows.js                      |    10 [32m+[m
+ assets/img/app-icon-1024.png        |   Bin [31m0[m -> [32m51486[m bytes
+ assets/img/apple-touch-icon.png     |   Bin [31m0[m -> [32m5517[m bytes
+ assets/img/favicon-32.png           |   Bin [31m0[m -> [32m1313[m bytes
+ assets/img/hero-mockup-mobile.webp  |   Bin [31m0[m -> [32m97374[m bytes
+ assets/img/hero-mockup.webp         |   Bin [31m0[m -> [32m216676[m bytes
+ assets/img/icon-192.png             |   Bin [31m0[m -> [32m8284[m bytes
+ assets/img/logo.png                 |   Bin [31m0[m -> [32m23693[m bytes
+ assets/img/og-image.png             |   Bin [31m0[m -> [32m373088[m bytes
+ assets/img/pc-artist.webp           |   Bin [31m0[m -> [32m47632[m bytes
+ assets/img/pc-hero-alt.webp         |   Bin [31m0[m -> [32m94898[m bytes
+ assets/img/pc-hero.webp             |   Bin [31m0[m -> [32m89344[m bytes
+ assets/img/pc-home.webp             |   Bin [31m0[m -> [32m111250[m bytes
+ assets/img/pc-library.webp          |   Bin [31m0[m -> [32m39758[m bytes
+ assets/img/pc-lyrics.webp           |   Bin [31m0[m -> [32m78964[m bytes
+ assets/img/screen-home.webp         |   Bin [31m0[m -> [32m67558[m bytes
+ assets/img/screen-lyrics.webp       |   Bin [31m0[m -> [32m36108[m bytes
+ assets/img/screen-player.webp       |   Bin [31m0[m -> [32m70322[m bytes
+ assets/img/screen-search.webp       |   Bin [31m0[m -> [32m160682[m bytes
+ assets/img/screen-settings.webp     |   Bin [31m0[m -> [32m142728[m bytes
+ assets/img/screen-stats.webp        |   Bin [31m0[m -> [32m138098[m bytes
+ compartir.html                      |   125 [32m+[m
+ css/hero.css                        |   300 [32m+[m
+ css/m3-expressive.css               |   424 [32m+[m
+ css/md3.css                         |   362 [32m+[m
+ css/styles.css                      |  1667 [32m++[m
+ extension-ytfetch/LEEME.md          |    12 [32m+[m
+ extension-ytfetch/ytsigned.js       |    63 [32m+[m
+ index.html                          |   688 [32m+[m
+ js/m3-motion.js                     |   357 [32m+[m
+ js/main.js                          |   382 [32m+[m
+ js/pc-stage.js                      |   300 [32m+[m
+ js/versus.js                        |   309 [32m+[m
+ llms.txt                            |    46 [32m+[m
+ privacidad.html                     |   190 [32m+[m
+ reproductor/css/base.css            |    13 [32m+[m
+ reproductor/css/components.css      |   354 [32m+[m
+ reproductor/css/custom.css          |    53 [32m+[m
+ reproductor/css/designs.css         |    37 [32m+[m
+ reproductor/css/layout.css          |    14 [32m+[m
+ reproductor/css/mini.css            |    75 [32m+[m
+ reproductor/css/search.css          |    80 [32m+[m
+ reproductor/css/tokens.css          |    22 [32m+[m
+ reproductor/debug.html              |    14 [32m+[m
+ reproductor/icon.png                |   Bin [31m0[m -> [32m48968[m bytes
+ reproductor/index.html              |    21 [32m+[m
+ reproductor/js/ambient.js           |    45 [32m+[m
+ reproductor/js/bridge.js            |    10 [32m+[m
+ reproductor/js/debug.js             |    28 [32m+[m
+ reproductor/js/download.js          |    24 [32m+[m
+ reproductor/js/full.js              |   186 [32m+[m
+ reproductor/js/glassfx.js           |    50 [32m+[m
+ reproductor/js/hls.js               |    55 [32m+[m
+ reproductor/js/icons.js             |    39 [32m+[m
+ reproductor/js/img.js               |    32 [32m+[m
+ reproductor/js/liquid.js            |    51 [32m+[m
+ reproductor/js/lyrics.js            |   426 [32m+[m
+ reproductor/js/lyricview.js         |    83 [32m+[m
+ reproductor/js/main.js              |   232 [32m+[m
+ reproductor/js/mini.js              |   126 [32m+[m
+ reproductor/js/native.js            |   133 [32m+[m
+ reproductor/js/player.js            |   111 [32m+[m
+ reproductor/js/search.js            |    89 [32m+[m
+ reproductor/js/settings.js          |   133 [32m+[m
+ reproductor/js/stats.js             |    27 [32m+[m
+ reproductor/js/store.js             |    82 [32m+[m
+ reproductor/js/video.js             |   102 [32m+[m
+ reproductor/js/views.js             |   155 [32m+[m
+ reproductor/js/wavy.js              |    27 [32m+[m
+ reproductor/js/yt.js                |   325 [32m+[m
+ reproductor/vendor/hls.min.js       |     2 [32m+[m
+ reproductor/vendor/youtubei.LICENSE |    21 [32m+[m
+ reproductor/vendor/youtubei.js      | 41306 [32m++++++++++++++++++++++++++++++++++[m
+ sitemap.xml                         |    13 [32m+[m
+ terminos.html                       |   162 [32m+[m
+ vercel.json                         |    51 [32m+[m
+ well-known/assetlinks.json          |    12 [32m+[m
+ 84 files changed, 50377 insertions(+)

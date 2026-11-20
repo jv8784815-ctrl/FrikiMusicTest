@@ -154,6 +154,8 @@ function audioSources(info, yt, aq = "auto") {
 const hlsVideoOffer = url => ({ aspect: 16 / 9, heights: [], auto: 0, hls: true, async pick() { return { height: 0, url, hls: true }; } });
 const whyNot = info => {
   const st = info?.playability_status, why = st?.reason || st?.status || "sin respuesta";
+  // "Sign in to confirm you're not a bot" también contiene "confirm": no es una restricción de edad
+  if (/bot/i.test(why)) return new Error(`YouTube bloqueó la petición por sospecha de bot (${why}). Inicia sesión en music.youtube.com en este navegador, recarga la extensión y reintenta.`);
   return new Error(/age|confirm/i.test(why) ? "Canción con restricción de edad: inicia sesión en YouTube Music (aún no soportado)." : `YouTube: ${why}`);
 };
 export async function resolveStream(videoId, aq = "auto") {
