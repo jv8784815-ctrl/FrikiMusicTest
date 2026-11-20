@@ -1,0 +1,51 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
+    },
+    {
+      "source": "/reproductor/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/privacidad",
+      "destination": "/privacidad.html"
+    },
+    {
+      "source": "/terminos",
+      "destination": "/terminos.html"
+    },
+    {
+      "source": "/p/:code",
+      "destination": "/compartir.html"
+    },
+    {
+      "source": "/.well-known/assetlinks.json",
+      "destination": "/well-known/assetlinks.json"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/reproductor",
+      "destination": "/reproductor/",
+      "permanent": false
+    }
+  ]
+}

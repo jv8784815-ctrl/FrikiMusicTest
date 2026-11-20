@@ -1,0 +1,22 @@
+/* Neutros y acentos tomados de la app de escritorio (Color.kt) */
+:root{--rk:1;--ck:1;--fs:1;--ly-k:1;--amb-mix:26%;--font:Inter,system-ui,sans-serif;--r-panel:calc(28px*var(--rk));--gutter:8px;--rail-w:80px;--rail-w-open:244px;--bar-h:96px;--ease:cubic-bezier(.2,0,0,1);--ease-in:cubic-bezier(.05,.7,.1,1)}
+[data-theme=dark]{--bg:#111215;--s0:#0d0e10;--s1:#1b1c1f;--s2:#1f2023;--s3:#2a2b2e;--s4:#353639;--tx:#e4e2e6;--tx2:#c5c6d0;--ol:#8f909a;--olv:#44464f;color-scheme:dark}
+[data-theme=light]{--bg:#dbd9dd;--s0:#fff;--s1:#f4f3f7;--s2:#efedf1;--s3:#e9e7ec;--s4:#e3e2e6;--tx:#1b1b1f;--tx2:#44464f;--ol:#74777f;--olv:#c4c6d0;color-scheme:light}
+[data-theme=dark][data-accent=rose]{--p:#FFB0D0;--on-p:#531D38;--c:#6F334F;--on-c:#FFD8E4}
+[data-theme=dark][data-accent=purple]{--p:#D0BCFF;--on-p:#381E72;--c:#4F378B;--on-c:#EADDFF}
+[data-theme=dark][data-accent=blue]{--p:#9ECAFF;--on-p:#003258;--c:#004A77;--on-c:#D1E4FF}
+[data-theme=dark][data-accent=green]{--p:#A4D18A;--on-p:#1F370C;--c:#294F13;--on-c:#D0E8BC}
+[data-theme=dark][data-accent=amber]{--p:#F1C24F;--on-p:#402D00;--c:#5A4200;--on-c:#FFE08A}
+[data-theme=light][data-accent=rose]{--p:#8B4A62;--on-p:#fff;--c:#FFD8E4;--on-c:#390721}
+[data-theme=light][data-accent=purple]{--p:#6750A4;--on-p:#fff;--c:#EADDFF;--on-c:#21005D}
+[data-theme=light][data-accent=blue]{--p:#0061A4;--on-p:#fff;--c:#D1E4FF;--on-c:#001D36}
+[data-theme=light][data-accent=green]{--p:#386A20;--on-p:#fff;--c:#D0E8BC;--on-c:#0F2000}
+[data-theme=light][data-accent=amber]{--p:#795900;--on-p:#fff;--c:#FFE08A;--on-c:#261A00}
+[data-theme=dark][data-accent=red]{--p:#FFB4AB;--on-p:#690005;--c:#93000A;--on-c:#FFDAD6}
+[data-theme=dark][data-accent=orange]{--p:#FFB77C;--on-p:#4D2600;--c:#6D3900;--on-c:#FFDCC2}
+[data-theme=dark][data-accent=teal]{--p:#53DBC9;--on-p:#003731;--c:#005048;--on-c:#9DF2E4}
+[data-theme=dark][data-accent=mono]{--p:#C8C6CA;--on-p:#303034;--c:#46464A;--on-c:#E4E2E6}
+[data-theme=light][data-accent=red]{--p:#BA1A1A;--on-p:#fff;--c:#FFDAD6;--on-c:#410002}
+[data-theme=light][data-accent=orange]{--p:#8F4C00;--on-p:#fff;--c:#FFDCC2;--on-c:#2E1500}
+[data-theme=light][data-accent=teal]{--p:#006A60;--on-p:#fff;--c:#9DF2E4;--on-c:#00201C}
+[data-theme=light][data-accent=mono]{--p:#5E5E62;--on-p:#fff;--c:#E3E2E6;--on-c:#1B1B1F}

@@ -1,0 +1,37 @@
+/* Diseños del reproductor grande: se eligen en Ajustes -> Reproductor y letras (data-fdesign en <html>) */
+@keyframes spin{to{rotate:360deg}}
+/* Vinilo */
+[data-fdesign=vinyl] .full[data-mode=art] .fart{border-radius:50%;background:repeating-radial-gradient(circle at 50% 50%,#09090a 0 2px,#17171a 2px 4px);box-shadow:0 30px 70px -22px var(--m1,#000),0 16px 36px #0008,inset 0 0 0 3px #2b2b30;animation:spin 14s linear infinite}
+[data-fdesign=vinyl] .full.paused .fart{animation-play-state:paused}
+[data-fdesign=vinyl] .full[data-mode=art] .fart .cov{position:absolute;inset:31%;width:38%;height:38%;border-radius:50%;box-shadow:0 0 0 3px #0008}
+[data-fdesign=vinyl] .full[data-mode=art] .fart::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 25deg,transparent 0 8%,rgba(255,255,255,.16) 13%,transparent 20% 58%,rgba(255,255,255,.11) 64%,transparent 72%);z-index:1;pointer-events:none}
+[data-fdesign=vinyl] .full[data-mode=art] .fart::after{content:"";position:absolute;left:50%;top:50%;width:4%;aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:var(--s0);z-index:2;box-shadow:0 0 0 2px #0008}
+/* Cristal (liquid glass) */
+[data-fdesign=glass] .full[data-mode=art] .fgrid,[data-fdesign=glass] .full[data-mode=split] .fgrid{grid-template-columns:calc(var(--art) + 48px)}
+[data-fdesign=glass] .full[data-col=lyrics] .fgrid,[data-fdesign=glass] .full[data-col=queue] .fgrid{grid-template-columns:calc(var(--art) + 48px) minmax(0,38vw)}
+[data-fdesign=glass] .full[data-mode=art] .fplayer,[data-fdesign=glass] .full[data-mode=split] .fplayer{position:relative;width:calc(var(--art) + 48px);padding:24px;border-radius:calc(44px*var(--rk));background:linear-gradient(140deg,rgba(255,255,255,.2),rgba(255,255,255,.05) 45%,rgba(255,255,255,.09));-webkit-backdrop-filter:blur(28px) saturate(1.8);backdrop-filter:blur(28px) saturate(1.8);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(255,255,255,.1),0 30px 70px -20px rgba(0,0,0,.55);isolation:isolate}
+[data-fdesign=glass] .full[data-mode=art] .fplayer::after,[data-fdesign=glass] .full[data-mode=split] .fplayer::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.3px;pointer-events:none;background:linear-gradient(140deg,rgba(255,255,255,.85),rgba(255,255,255,.04) 35%,rgba(255,255,255,.04) 65%,rgba(255,255,255,.5));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+[data-fdesign=glass] .full .fart{border-radius:calc(30px*var(--rk))}
+[data-theme=light][data-fdesign=glass] .full .fplayer{background:linear-gradient(140deg,rgba(255,255,255,.7),rgba(255,255,255,.3))}
+@media(max-width:900px){
+  [data-fdesign=glass] .full[data-mode] .fgrid{grid-template-columns:minmax(0,1fr)}
+  [data-fdesign=glass] .full[data-mode] .fplayer{width:100%}
+}
+
+/* Halo: marco luminoso con portada flotante y jerarquía tipográfica propia. */
+[data-fdesign=halo] .full::before{inset:-12%;background:radial-gradient(ellipse at 28% 52%,color-mix(in srgb,var(--p) 35%,transparent),transparent 32%),radial-gradient(ellipse at 78% 22%,color-mix(in srgb,var(--m2,#58c7d8) 26%,transparent),transparent 38%),radial-gradient(ellipse at 78% 82%,color-mix(in srgb,var(--m3,#a56cff) 22%,transparent),transparent 34%);filter:blur(52px);opacity:.9}
+[data-fdesign=halo] .full .fgrid{column-gap:clamp(56px,9vw,160px)}
+[data-fdesign=halo] .full .fart{border-radius:calc(34px*var(--rk));box-shadow:0 0 0 1px #ffffff30,0 0 0 10px #ffffff08,0 32px 90px -24px color-mix(in srgb,var(--p) 60%,#000);transform:rotate(-2deg)}
+[data-fdesign=halo] .full .finfo{padding:8px 8px 0}
+[data-fdesign=halo] .full .finfo .tt b{font-size:calc(20px*var(--fs));letter-spacing:-.04em}
+[data-fdesign=halo] .full .ctl{margin-top:18px}
+[data-fdesign=halo] .full .play{width:58px;height:58px;border-radius:22px;background:linear-gradient(145deg,var(--p),color-mix(in srgb,var(--p) 65%,#fff));box-shadow:0 8px 28px color-mix(in srgb,var(--p) 42%,transparent)}
+[data-fdesign=halo] .full .lv-scroll{mask-image:linear-gradient(transparent,#000 7%,#000 91%,transparent)}
+@media(max-width:900px){[data-fdesign=halo] .full .fart{transform:none}}
+
+/* Al mostrar las letras la carátula se desliza a su nueva posición; al cerrarlas, acompaña el regreso. */
+@keyframes coverLyricsIn{from{translate:42px 0;opacity:.72}to{translate:0 0;opacity:1}}
+@keyframes coverLyricsOut{from{translate:0 0;opacity:1}to{translate:42px 0;opacity:.78}}
+.full.lyrics-art-in[data-mode=art] .fart,.full.lyrics-art-in[data-mode=split] .fart{animation:coverLyricsIn .48s cubic-bezier(.22,.72,.25,1) both}
+.full.lyrics-art-out[data-mode=art] .fart,.full.lyrics-art-out[data-mode=split] .fart{animation:coverLyricsOut .34s ease-in both}
+@media(prefers-reduced-motion:reduce){.full.lyrics-art-in .fart,.full.lyrics-art-out .fart{animation:none!important}}

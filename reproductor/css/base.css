@@ -1,0 +1,13 @@
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);font-weight:400;font-size:calc(14px*var(--fs));line-height:1.45;background:var(--bg);color:var(--tx);overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font:inherit;color:inherit}
+svg{width:24px;height:24px;fill:currentColor;display:block;flex:none}
+img{display:block}
+:focus-visible{outline:2px solid var(--p);outline-offset:2px}
+h1{font-size:calc(32px*var(--fs));font-weight:800;letter-spacing:-.03em}
+h2{font-size:calc(20px*var(--fs));font-weight:700;letter-spacing:-.01em}
+.muted{color:var(--tx2)}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:var(--s4);border-radius:5px;border:2px solid transparent;background-clip:content-box}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
