@@ -183,6 +183,22 @@ async function resolveWith(yt, videoId, aq, clients, signed) {
     throw Object.assign(whyNot(firstErr, signed), { gate: GATE.test(reasonOf(firstErr)), bot: /bot/i.test(reasonOf(firstErr)) });
   }
   const sources = audioSources(info, yt, aq);
+  const vf = (info.streaming_data?.adaptive_formats ?? []).filter(f => f.has_video);
+  console.info(`[FrikiMusic] ${signed ? "con sesión" : "anónimo"} ${clients[used]} OK · audio: ${sources.length} fuentes · vídeo: ${vf.length} formatos (${vf.filter(f => f.url || f.signature_cipher || f.cipher).length} con URL)`);
+  // Si la respuesta que da el audio no trae vídeo utilizable, se pide a los demás clientes solo la imagen
+  const findVideo = async () => {
+    for (let c = 0; c < clients.length; c++) {
+      if (c === used) continue;
+      try {
+        const alt = await fetchInfo(yt, videoId, clients[c]);
+        if (alt.playability_status?.status !== "OK") continue;
+        const v = videoOffer(alt, yt);
+        console.info(`[FrikiMusic] vídeo vía ${clients[c]}: ${v ? v.heights.join(", ") + "p" : "sin formatos utilizables"}`);
+        if (v) return v;
+      } catch (e) { console.warn(`[FrikiMusic] vídeo vía ${clients[c]} falló:`, e?.message || e); }
+    }
+    return null;
+  };
   // Otros clientes, solo si ninguna de las fuentes anteriores se deja reproducir
   const more = async () => {
     const out = [];
@@ -194,7 +210,7 @@ async function resolveWith(yt, videoId, aq, clients, signed) {
   };
   if (!sources.length && !(await more().then(m => { sources.push(...m); return m.length }))) throw new Error("YouTube no dio una URL directa de audio para esta canción");
   const url = await sources[0].url();
-  return { url, itag: sources[0].itag, bitrate: sources[0].bitrate, sources, more, duration: info.basic_info?.duration || 0, live: !!info.basic_info?.is_live, video: videoOffer(info, yt), signed };
+  return { url, itag: sources[0].itag, bitrate: sources[0].bitrate, sources, more, duration: info.basic_info?.duration || 0, live: !!info.basic_info?.is_live, video: videoOffer(info, yt), findVideo, signed };
 }
 export async function resolveStream(videoId, aq = "auto") {
   const anon = async () => resolveWith(await getInnertube(), videoId, aq, CLIENTS, false);

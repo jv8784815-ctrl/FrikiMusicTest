@@ -160,7 +160,7 @@ document.addEventListener("click", e => {
   else if (d.play) {
     const [l, i] = d.play.split(":"), list = lists()[l], track = list?.[+i];
     const playback = l === "queue" ? playAt(+i) : playList(list || [], +i);
-    if (track?.video) Promise.resolve(playback).then(() => {
+    if (track?.video) Promise.resolve(playback).then(() => P.media?.videoLookup).then(() => {
       if (P.song !== track) return;
       if (P.media?.video) { if (!isFullOpen()) openFull(); }
       else toast("YouTube no ofrece un video reproducible para este resultado.");

@@ -25,6 +25,8 @@ export async function playAt(i) {
     if (P.song !== s) return;
     P.media = st;
     await playSources(st, s);
+    // Canción con vídeo pero la respuesta del audio no lo traía: se busca en otros clientes sin frenar el audio
+    if (s.video && !st.video && st.findVideo && P.song === s) st.videoLookup = st.findVideo().then(v => { if (v && P.media === st && P.song === s) { st.video = v; emit(); } }).catch(() => {});
   } catch (e) { P.error = /supported source/.test(e.message) ? "El navegador no pudo cargar el audio. " + e.message.replace(/^supported source\s*\|?\s*/, "").slice(0, 300) : e.message; if (P.error) console.error("FrikiMusic:", e); }
   P.loading = false; emit();
 }
