@@ -10,10 +10,10 @@ const where = edge ? "edge://extensions" : "chrome://extensions";
 
 const STEPS = [
   `Descarga el zip con el botón de arriba.`,
-  `Descomprímelo en una carpeta que no vayas a borrar (Chrome la lee desde ahí cada vez que se abre).`,
+  `Descomprime el zip: te quedará la carpeta <b>FrikiMusic Bridge</b>. Déjala en un sitio fijo y no la borres (el navegador la lee desde ahí cada vez que se abre).`,
   `Abre <code>${where}</code> en una pestaña nueva.`,
   `Activa el <b>Modo de desarrollador</b> (esquina superior derecha${edge ? ", o el panel de la izquierda en Edge" : ""}).`,
-  `Pulsa <b>Cargar descomprimida</b> y elige la carpeta que contiene <code>manifest.json</code>.`,
+  `Pulsa <b>Cargar descomprimida</b> y elige la carpeta <b>FrikiMusic Bridge</b> (la que tiene dentro <code>manifest.json</code>).`,
   `Vuelve aquí y pulsa <b>Comprobar de nuevo</b> (o recarga la página).`,
 ];
 
