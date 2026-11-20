@@ -141,7 +141,7 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
       active = -2; rows = []; lines = []; box.scrollTop = 0; label.textContent = "";
       if (state === "loading") { box.innerHTML = `<div class="lv-msg">${"<div class=\"sk\"></div>".repeat(7)}</div>`; return; }
       if (!state) {
-        box.innerHTML = `<div class="lv-msg"><b>Sin letras para esta canción</b><span>Prueba otra fuente abajo o reintenta.</span><button class="chip" data-retry>Reintentar</button>${log.length ? `<details open><summary>Qué respondió cada fuente</summary><pre>${esc(log.join("\n"))}</pre></details>` : ""}</div>`;
+        box.innerHTML = `<div class="lv-msg"><b>Letras no disponibles</b><button class="chip" data-retry>Reintentar</button></div>`;
         box.querySelector("[data-retry]").onclick = () => onRetry?.(); pick.value = forced; return;
       }
       lines = state.lines; synced = state.synced;
