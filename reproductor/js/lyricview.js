@@ -43,6 +43,17 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
     recenter = false;
     box.scrollTo({ top: Math.max(0, row.offsetTop - box.clientHeight * .3), behavior: "smooth" });
   }
+  function gapFrame(row, idx, t) {
+    const a = lines[idx].timeMs, b = lines[idx + 1] ? lines[idx + 1].timeMs : a + 4000;
+    const p = Math.min(1, Math.max(0, (t - a) / Math.max(1, b - a)));
+    const dots = row.children;
+    for (let n = 0; n < dots.length; n++) {
+      const f = Math.min(1, Math.max(0, p * dots.length - n));
+      dots[n].style.setProperty("--f", f.toFixed(3));
+      dots[n].classList.toggle("done", f >= 1);
+    }
+    row.classList.toggle("out", b - t < 450);
+  }
   function frame() {
     raf = requestAnimationFrame(frame);
     if (!synced || !lines.length) return;
@@ -52,6 +63,7 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
     if (idx !== active) setActive(idx);
     else if (recenter && idx >= 0) center(rows[idx]);
     if (idx < 0) return;
+    if (rows[idx].classList.contains("gap")) { gapFrame(rows[idx], idx, t); return; }
     for (const s of rows[idx].querySelectorAll(".sy:not(.ln)")) {
       const a = +s.dataset.a, b = +s.dataset.b;
       s.style.setProperty("--k", t <= a ? 0 : t >= b ? 100 : ((t - a) / (b - a)) * 100);
