@@ -352,3 +352,8 @@ body{background:var(--bg);transition:background .6s}
 .mini.rank{grid-template-columns:28px 40px minmax(0,1fr)}
 .mini .rk{font-style:normal;font-weight:800;text-align:center;color:var(--tx2);font-size:calc(14px*var(--fs))}
 .mini.rank:nth-child(-n+3) .rk{color:var(--p)}
+/* Extensión: estado y pasos de instalación */
+.extst{font-weight:600;font-size:calc(13px*var(--fs));color:var(--tx2);white-space:nowrap}.extst.ok{color:var(--p)}.extst.no{color:#FFB4AB}
+.extsteps{margin:10px 0 0;padding-left:22px;display:grid;gap:8px;color:var(--tx2);font-size:calc(14px*var(--fs));line-height:1.45}
+.extsteps b{color:var(--tx)}.extsteps code{padding:1px 6px;border-radius:6px;background:var(--s3);color:var(--tx);font-size:.92em}
+.scard>.sbtns{padding:4px 16px 12px}

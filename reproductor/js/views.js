@@ -3,6 +3,7 @@ import { S, isLiked } from "./store.js";
 import { P, au } from "./player.js";
 import { pic, hqPx } from "./img.js";
 import { winButton } from "./download.js";
+import { extBanner } from "./ext.js";
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 export const V = { top: { period: "week", scope: "ALL", data: null, loading: false, ok: false, country: "" }, topArtist: null, q: "", results: [], feed: [], home: [], loading: false, ext: null, filter: "all", err: "", artist: "", artistId: "", artistPage: null, artistSongs: [], artistShelfTracks: {}, artistLoading: false, artistErr: "", albumId: "", albumPage: null, albumTracks: [], albumLoading: false, albumErr: "" };
 // Resultados visibles según el filtro activo (Todo / Canciones / Vídeos). Los índices data-play="search:i" apuntan a esta lista.
@@ -74,7 +75,7 @@ const rows = (l, name, q) => l.map((s, i) => row(s, name, i, q)).join("");
 const promo = () => { const b = winButton("lg"); return b ? `<div class="promo"><div><b>FrikiMusic para Windows</b><span>La app de escritorio, con instalador y sin extensión.</span></div>${b}</div>` : ""; };
 export function home() {
   const h = S.history, H = S.cfg.home;
-  if (!h.length && !V.home.length) return `<h1>Inicio</h1>` + promo() + topBlock() + empty("Tu música aparecerá aquí", "Tus reproducciones recientes y tus favoritos se guardan en este navegador.", `<button class="chip fill" data-focus="q">Explorar música</button>`)
+  if (!h.length && !V.home.length) return `<h1>Inicio</h1>` + extBanner() + promo() + topBlock() + empty("Tu música aparecerá aquí", "Tus reproducciones recientes y tus favoritos se guardan en este navegador.", `<button class="chip fill" data-focus="q">Explorar música</button>`)
     + (V.ext === false ? extNote() : "");
   const sec = t => `<div class="sec"><h2>${t}<i class="chev">›</i></h2></div>`;
   const body = (H.recent && h.length ? sec("Reproducido recientemente") + `<div class="cols r3">${h.slice(0, 12).map((s, i) => mini(s, "history", i)).join("")}</div>` : "")
@@ -84,9 +85,9 @@ export function home() {
     + (H.again && h.length ? sec("Volver a escuchar") + `<div class="shelf xl hs">${h.slice(0, 15).map((s, i) => card(s, "history", i)).join("")}</div>` : "")
     + (H.mixes && mixes().length ? sec("Tus mixes") + `<div class="shelf big hs">${mixes().map(mixCard).join("")}</div>` : "")
     + (H.likes && S.likes.length ? sec("Tus favoritos") + `<div class="shelf xl hs">${S.likes.slice(0, 15).map((s, i) => card(s, "likes", i)).join("")}</div>` : "");
-  return `<h1 class="ht">Inicio</h1>` + promo() + (body || empty("Inicio vacío", "Has ocultado todas las secciones. Vuelve a activarlas en Ajustes → Inicio.", `<a class="chip fill" href="#/settings" style="text-decoration:none">Abrir ajustes</a>`));
+  return `<h1 class="ht">Inicio</h1>` + extBanner() + promo() + (body || empty("Inicio vacío", "Has ocultado todas las secciones. Vuelve a activarlas en Ajustes → Inicio.", `<a class="chip fill" href="#/settings" style="text-decoration:none">Abrir ajustes</a>`));
 }
-const extNote = () => `<p class="muted" style="text-align:center">La extensión no responde: cárgala en chrome://extensions y recarga la página.</p>`;
+const extNote = () => ``; // el aviso con descarga ahora es extBanner()
 // Atajos de género para la pantalla vacía: [texto del botón, consulta que se envía]. Edita esta lista a tu gusto.
 const GENRES = [["Pop", "pop hits"], ["Rock", "rock clásico"], ["Reguetón", "reggaeton hits"], ["Hip hop", "hip hop hits"], ["Electrónica", "electronic music"], ["Lo-fi", "lofi beats"],
   ["Metal", "metal"], ["Indie", "indie"], ["K-pop", "k-pop"], ["Anime openings", "anime openings"], ["Videojuegos", "video game soundtrack"]];
@@ -103,7 +104,7 @@ export function search() {
   if (V.loading) return `<h1>Buscando “${esc(V.q)}”…</h1><div class="skrows" aria-hidden="true">${`<div class="skrow"><i></i><div><i></i><i></i></div></div>`.repeat(8)}</div>`;
   if (!V.q) return start();
   const head = `<h1>Resultados para “${esc(V.q)}”</h1>`;
-  if (V.err) return head + empty("No se pudo completar la búsqueda", esc(V.err), `<button class="chip fill" data-sretry>Reintentar</button>`) + (V.ext === false ? extNote() : "");
+  if (V.err) return head + empty("No se pudo completar la búsqueda", esc(V.err), `<button class="chip fill" data-sretry>Reintentar</button>`) + extBanner();
   if (!V.results.length) return head + empty("Sin resultados", "Revisa la ortografía o prueba con el título de la canción o el nombre del artista.");
   const list = shown(), nv = V.results.filter(x => x.video).length, n = { all: V.results.length, song: V.results.length - nv, video: nv };
   const bar = `<div class="sbar" role="group" aria-label="Filtrar resultados">`

@@ -1,5 +1,6 @@
 import { icon, oicon, brandMark } from "./icons.js";
 import { bridge } from "./bridge.js";
+import { X } from "./ext.js";
 import { parseHome, isNative } from "./native.js";
 import { fetchTop } from "./stats.js";
 import { S, save, applyTheme, toggleLike, isLiked, pushRecent, topArtist, artistNames } from "./store.js";
@@ -142,8 +143,8 @@ async function runSearch(q, force) {
   V.q = q; V.filter = "all"; V.err = ""; location.hash = "#/search";
   if (hit && Date.now() - hit.t < 6e5) { V.results = hit.r; V.loading = false; setBusy(false); return drawView(); }
   V.loading = true; setBusy(true); drawView();
-  try { const r = await bridge("search", { query: q }); if (mine !== tok) return; V.results = r; V.ext = true; cache.set(key, { r, t: Date.now() }); if (cache.size > 30) cache.delete(cache.keys().next().value); }
-  catch (e) { if (mine !== tok) return; V.results = []; V.err = e.message; V.ext = !/extensi/i.test(e.message); }
+  try { const r = await bridge("search", { query: q }); if (mine !== tok) return; V.results = r; V.ext = true; X.ok = true; cache.set(key, { r, t: Date.now() }); if (cache.size > 30) cache.delete(cache.keys().next().value); }
+  catch (e) { if (mine !== tok) return; V.results = []; V.err = e.message; V.ext = !/extensi/i.test(e.message); if (!V.ext) X.ok = false; }
   V.loading = false; setBusy(false); drawView();
 }
 $("#searchForm").addEventListener("submit", e => { e.preventDefault(); const q = $("#q").value.trim(); if (q) runSearch(q); });
@@ -187,7 +188,7 @@ bindSettings({ redraw: drawView, rail: drawRail, toast });
 bindMini({ toast, onLike: () => { drawView(); drawBar(); } }); setAutoMini();
 bindSearch({ run: runSearch, redraw: drawView });
 applyTheme(); drawTop(); drawRail(); drawView(); drawBar();
-bridge("ping").then(() => V.ext = true).catch(() => { V.ext = false; drawView(); });
+bridge("ping").then(() => { V.ext = true; X.ok = true; if (cur() === "settings") drawView(); }).catch(() => { V.ext = false; X.ok = false; drawView(); });
 const within = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(Error("Tiempo agotado")), ms))]);
 async function loadHome() {
   const tries = [
