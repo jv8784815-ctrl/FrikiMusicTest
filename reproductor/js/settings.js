@@ -79,12 +79,7 @@ export function settings() {
       + row("Difuminar líneas inactivas", "", sw("lyBlur")))
     + sec("Reproducción", row("Pasar a la siguiente canción al terminar", "El volumen se recuerda siempre.", sw("autonext")) + row("Contar mis reproducciones en el Top", "Anónimo: solo la canción y tu país, sin cuenta ni datos personales.", sw("stats")))
     + sec("Idioma", row("Idioma", "Se detecta del navegador. Cambiarlo recarga la página.", `<select class="ssel" data-lang aria-label="Idioma"><option value="auto"${langPref() === "auto" ? " selected" : ""}>Automático</option>${LANGS.map(([v, n]) => `<option translate="no" value="${v}"${langPref() === v ? " selected" : ""}>${n}</option>`).join("")}</select>`))
-    + extSection()
-    + `<section class="ssec"><h2>Datos</h2><div class="scard"><div class="sbtns">
-        <button class="chip" data-do="export">Exportar copia</button><button class="chip" data-do="import">Importar copia</button>
-        <button class="chip" data-do="reset">Restablecer ajustes</button><button class="chip danger" data-do="clearhist">Borrar historial</button><button class="chip danger" data-do="clearlikes">Borrar favoritos</button></div>
-        <div class="srow"><div><span class="d">La copia incluye ajustes, favoritos e historial. Útil para llevarlo de localhost a tu dominio de Vercel (cada dirección guarda sus propios datos).</span></div></div></div>
-        <input type="file" id="impFile" accept=".json,application/json" hidden></section>`;
+    + extSection();
 }
 
 export function bindSettings({ redraw, rail, toast }) {
