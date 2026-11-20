@@ -159,7 +159,7 @@ const whyNot = (info, signed = false) => {
   return new Error(/age|confirm/i.test(why) ? "Canción con restricción de edad: inicia sesión en YouTube Music en este navegador." : `YouTube: ${why}`);
 };
 
-const SIGNED_CLIENTS = ["YTMUSIC", "WEB", "VISIONOS"];
+const SIGNED_CLIENTS = ["TV", "YTMUSIC", "WEB", "VISIONOS"];
 let signedFirstUntil = 0;
 async function resolveWith(yt, videoId, aq, clients, signed) {
   let info = null, used = -1, firstErr = null, netErr = null;
