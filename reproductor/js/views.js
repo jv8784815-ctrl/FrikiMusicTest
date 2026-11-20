@@ -53,7 +53,7 @@ const topBlock = () => {
   const chips = PERIODS.map(([k, l]) => `<button class="chip${T.period === k ? " on" : ""}" data-top="period:${k}" aria-pressed="${T.period === k}">${l}</button>`).join("")
     + `<span style="flex:1"></span><button class="chip${T.scope === "ALL" ? " on" : ""}" data-top="scope:ALL" aria-pressed="${T.scope === "ALL"}">Global</button>`
 ;
-  const list = T.loading ? `<p class="muted">Cargando…</p>` : items.length ? `<div class="cols r3">${items.slice(0, 12).map(topRow).join("")}</div>` : `<p class="muted">Aún no hay suficientes reproducciones en este periodo.</p>`;
+  const list = T.loading ? `<p class="muted">Cargando…</p>` : items.length ? `<div class="cols r3">${items.slice(0, 20).map(topRow).join("")}</div>` : `<p class="muted">Aún no hay suficientes reproducciones en este periodo.</p>`;
   const place = T.scope === "country" && cn ? "de " + esc(cn) : "global";
   return `<div class="sec"><div class="sech"><small class="strap">Lo más escuchado en FrikiMusic</small><h2>Top ${place}</h2></div></div><div class="top-chips">${chips}</div>${list}`;
 };
@@ -98,7 +98,7 @@ export function home() {
   if (!h.length && !V.home.length) return `<h1>Inicio</h1>` + extBanner() + promo() + topBlock() + empty("Tu música aparecerá aquí", "Tus reproducciones recientes y tus favoritos se guardan en este navegador.", `<button class="chip fill" data-focus="q">Explorar música</button>`)
     + (V.ext === false ? extNote() : "");
   const sec = t => `<div class="sec"><h2>${t}<i class="chev">›</i></h2></div>`;
-  const body = (H.recent && h.length ? sec("Reproducido recientemente") + `<div class="cols r3">${h.slice(0, 12).map((s, i) => mini(s, "history", i)).join("")}</div>` : "")
+  const body = (H.recent && h.length ? sec("Reproducido recientemente") + `<div class="cols r3">${h.slice(0, 20).map((s, i) => mini(s, "history", i)).join("")}</div>` : "")
     + artistBlock()
     + topBlock()
     + (H.feed ? V.home.map(feedShelf).join("") : "")

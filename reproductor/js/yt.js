@@ -388,6 +388,24 @@ function rawShelves(data) {
   walk(data);
   return shelves;
 }
+async function chartPlaylist(id) {
+  const yt = await getInnertube();
+  const res = await yt.actions.execute("/browse", { browseId: /^VL/.test(id) ? id : "VL" + id, client: "YTMUSIC" });
+  if (!res?.success) throw new Error("YouTube Music respondió " + res?.status_code);
+  const out = [], seen = new Set();
+  const walk = n => {
+    if (!n || typeof n !== "object") return;
+    if (Array.isArray(n)) { n.forEach(walk); return; }
+    if (n.musicResponsiveListItemRenderer) {
+      const it = rawChartItem({ musicResponsiveListItemRenderer: n.musicResponsiveListItemRenderer });
+      if (it && !seen.has(it.id)) { seen.add(it.id); out.push(it); }
+      return;
+    }
+    Object.values(n).forEach(walk);
+  };
+  walk(res.data);
+  return out;
+}
 const IS_SONGS = /canciones|songs|temas|tracks/i, NOT_SONGS = /v[ií]deo|artist/i;
 async function chartFrom(data) {
   const shelves = rawShelves(data);
@@ -396,7 +414,10 @@ async function chartFrom(data) {
   if (pickDirect) return pickDirect.items;
   const lists = shelves.flatMap(x => x.lists.map(l => ({ ...l, shelf: x.title })));
   const pl = lists.find(l => IS_SONGS.test(l.title) && !NOT_SONGS.test(l.title)) || lists.find(l => IS_SONGS.test(l.shelf) && !NOT_SONGS.test(l.shelf)) || lists.find(l => !NOT_SONGS.test(l.title + " " + l.shelf)) || lists[0];
-  if (pl) return (await fetchPlaylistPage(pl.id)).tracks;
+  if (pl) {
+    try { const t = await chartPlaylist(pl.id); if (t.length) return t; } catch {}
+    return (await fetchPlaylistPage(pl.id)).tracks;
+  }
   if (direct.length) return direct[0].items;
   throw new Error("sin canciones ni listas: " + shelves.map(x => `${x.title || "?"} [${x.items.length} canc., ${x.lists.length} listas]`).join("; "));
 }
@@ -407,5 +428,34 @@ export async function fetchCountryChart(country) {
   const res = await yt.actions.execute("/browse", { browseId: "FEmusic_charts", client: "YTMUSIC", formData: { selectedValues: [code] } });
   if (!res?.success) throw new Error("YouTube Music respondió " + res?.status_code);
   const items = await chartFrom(res.data);
-  return items.slice(0, 50).map(x => ({ id: x.id, title: x.title, artist: x.artist, cover: x.cover, plays: null }));
+  return items.slice(0, 50).map(x => ({ id: x.id, title: x.title, artist: /^chart\b/i.test(x.artist || "") ? "" : x.artist, cover: x.cover, plays: null }));
+}
+
+const MIN_VIDEO_ASPECT = 1.2, AUTO_MAX_HEIGHT = 1080;
+function videoOffer(info, yt) {
+  const sd = info.streaming_data;
+  const ok = f => f.has_video && f.width && f.height && (f.url || f.signature_cipher || f.cipher);
+  const all = (sd?.adaptive_formats ?? []).filter(ok);
+
+  const mux = [...(sd?.formats ?? [])].filter(ok).sort((a, b) => b.height - a.height)[0];
+  const largest = [...all, ...(mux ? [mux] : [])].sort((a, b) => b.width * b.height - a.width * a.height)[0];
+  if (!largest || largest.width / largest.height < MIN_VIDEO_ASPECT) return null;
+  const muxed = mux ? async () => ({ height: mux.height, url: await mux.decipher(yt.session.player) }) : null;
+  const probe = document.createElement("video");
+  const playable = all.filter(f => !/vp09\.0[23]|av01\.0\.\d+M\.(10|12)/.test(f.mime_type) && probe.canPlayType(f.mime_type.replace(/;\s*/, "; ")) !== "");
+  const rank = f => (/avc1/.test(f.mime_type) ? 0 : /vp0?9/.test(f.mime_type) ? 1 : 2);
+  const byHeight = new Map();
+  for (const f of playable) { const cur = byHeight.get(f.height); if (!cur || rank(f) < rank(cur) || (rank(f) === rank(cur) && f.bitrate > cur.bitrate)) byHeight.set(f.height, f); }
+  const heights = [...byHeight.keys()].sort((a, b) => b - a);
+  const aspect = largest.width / largest.height;
+  if (!heights.length) return muxed ? { aspect, heights: [mux.height], auto: mux.height, muxed, pick: muxed } : null;
+  const auto = heights.find(h => h <= AUTO_MAX_HEIGHT) ?? heights.at(-1);
+  return {
+    aspect, heights, auto, muxed,
+
+    async pick(quality) {
+      const h = quality === "auto" ? auto : byHeight.has(quality) ? quality : heights.find(x => x <= quality) ?? heights.at(-1), f = byHeight.get(h);
+      return { height: h, url: await f.decipher(yt.session.player) };
+    },
+  };
 }

@@ -43,7 +43,26 @@ function drawView() {
     const image = $("#view .artist-photo img");
     if (image) image.onerror = () => { if (image.dataset.o && image.src !== image.dataset.o) image.src = image.dataset.o; else image.remove(); };
   }
+  enhanceScrollers();
   applyDyn();
+}
+function enhanceScrollers() {
+  document.querySelectorAll("#view .hs, #view .cols").forEach(el => {
+    if (el.parentElement?.classList.contains("hsw")) return;
+    const w = document.createElement("div"); w.className = "hsw";
+    el.replaceWith(w); w.append(el);
+    const mk = (cls, txt, dir) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "hsn " + cls; b.textContent = txt; b.setAttribute("aria-label", dir < 0 ? "Anterior" : "Siguiente");
+      b.addEventListener("click", e => { e.stopPropagation(); el.scrollBy({ left: dir * el.clientWidth * .85, behavior: "smooth" }); });
+      w.append(b); return b;
+    };
+    const prev = mk("prev", "‹", -1), next = mk("next", "›", 1);
+    const upd = () => { prev.hidden = el.scrollLeft < 8; next.hidden = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8; };
+    el.addEventListener("scroll", upd, { passive: true });
+    if (window.ResizeObserver) new ResizeObserver(upd).observe(el);
+    upd();
+  });
 }
 const tints = new Map();
 let wantedTint = "";
@@ -255,3 +274,23 @@ loadHome();
 loadTopArtist();
 loadTop();
 ensureTop();
+let drag = null, dragged = false;
+$("#view").addEventListener("pointerdown", e => {
+  const el = e.target.closest(".hs");
+  if (!el || e.pointerType !== "mouse" || e.button) return;
+  drag = { el, x: e.clientX, s: el.scrollLeft, moved: false };
+});
+addEventListener("pointermove", e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x;
+  if (!drag.moved && Math.abs(dx) > 6) { drag.moved = true; drag.el.classList.add("drag"); }
+  if (drag.moved) drag.el.scrollLeft = drag.s - dx;
+});
+addEventListener("pointerup", () => {
+  if (!drag) return;
+  drag.el.classList.remove("drag");
+  if (drag.moved) { dragged = true; setTimeout(() => { dragged = false; }, 0); }
+  drag = null;
+});
+$("#view").addEventListener("click", e => { if (dragged) { e.stopPropagation(); e.preventDefault(); } }, true);
+$("#view").addEventListener("dragstart", e => { if (e.target.closest(".hs")) e.preventDefault(); });

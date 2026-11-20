@@ -6,12 +6,12 @@
 [data-density=compact] .row img{width:44px;height:44px}
 [data-density=compact] .sec{margin:18px 0 10px}
 [data-density=compact] .top{padding:10px 28px}[data-density=compact] .searchbar{height:46px}
-[data-density=compact] .rail .item{height:46px}[data-density=compact] .cols{grid-template-rows:repeat(4,46px)}
+[data-density=compact] .rail .item{height:46px}[data-density=compact] .cols{grid-template-rows:repeat(4,60px)}
 [data-density=compact] .bar .meta img,[data-density=compact] .bar .meta .ph{width:52px;height:52px}
 [data-density=airy]{--bar-h:108px}
 [data-density=airy] .row{padding:12px 14px;gap:18px}
 [data-density=airy] .sec{margin:40px 0 18px}
-[data-density=airy] .rail .item{height:60px}[data-density=airy] .cols{grid-template-rows:repeat(4,64px)}
+[data-density=airy] .rail .item{height:60px}[data-density=airy] .cols{grid-template-rows:repeat(4,80px)}
 
 [data-playshape=circle] .play{border-radius:50%}
 
