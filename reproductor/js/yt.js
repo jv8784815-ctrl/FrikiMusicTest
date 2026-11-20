@@ -485,3 +485,27 @@ function videoOffer(info, yt) {
     },
   };
 }
+
+const normName = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+
+export async function searchArtistCard(query) {
+  try {
+    const yt = await getInnertube();
+    const res = await yt.music.search(String(query || ""), { type: "artist" });
+    const seen = new Set();
+    const find = node => {
+      if (!node || typeof node !== "object" || seen.has(node)) return null;
+      seen.add(node);
+      if ((node.item_type === "artist" || node.item_type === "library_artist") && String(node.id || "").startsWith("UC")) return node;
+      for (const v of Object.values(node)) { if (Array.isArray(v)) { for (const c of v) { const f = find(c); if (f) return f; } } else if (v && typeof v === "object") { const f = find(v); if (f) return f; } }
+      return null;
+    };
+    const a = find(res.contents);
+    if (!a) return null;
+    const name = txt(a.name) || txt(a.title);
+    const nq = normName(query), nn = normName(name);
+    if (!nn || !(nn === nq || nn.startsWith(nq) || nq.startsWith(nn + " ") || (nq.length >= 3 && nn.includes(nq)))) return null;
+    const avatar = [...(a.thumbnails || [])].sort((x, y) => (y.width || 0) - (x.width || 0))[0]?.url || "";
+    return { id: a.id, name, avatar, subtitle: txt(a.subscribers) || "" };
+  } catch { return null; }
+}

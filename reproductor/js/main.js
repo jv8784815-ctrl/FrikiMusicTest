@@ -6,7 +6,7 @@ import { parseHome, isNative } from "./native.js";
 import { fetchTop } from "./stats.js";
 import { S, save, applyTheme, toggleLike, isLiked, pushRecent, topArtist, artistNames } from "./store.js";
 import { P, au, playList, playAt, toggle, next, prev, updateSession } from "./player.js";
-import { fetchCountryChart, fetchHomeFeed, fetchArtistPage, fetchPlaylistPage, fetchAlbumPage, fetchAlbumTracks, fetchArtistAvatar } from "./yt.js";
+import { searchArtistCard, fetchCountryChart, fetchHomeFeed, fetchArtistPage, fetchPlaylistPage, fetchAlbumPage, fetchAlbumTracks, fetchArtistAvatar } from "./yt.js";
 import { V, lists, home, search, artist, album, queue, likes, settings, topGlobal, topCountry, countryName } from "./views.js";
 import { wavy } from "./wavy.js";
 import { playShapes } from "./shapes.js";
@@ -155,14 +155,15 @@ au.addEventListener("timeupdate", () => document.querySelectorAll("[data-cur]").
 au.addEventListener("loadedmetadata", () => document.querySelectorAll("[data-dur]").forEach(e => e.textContent = fmt(au.duration)));
 let lastErr = ""; P.on(() => { drawBar(); if (cur() === "queue" || cur() === "home" || cur() === "artist" || cur() === "album" || topPages[cur()]) drawView(); if (P.error && P.error !== lastErr) toast(P.error); lastErr = P.error; });
 
-const cache = new Map(); let tok = 0;
+const cache = new Map(), artCache = new Map(); let tok = 0;
 async function runSearch(q, force) {
   q = String(q).trim(); if (!q) return;
   const mine = ++tok, key = q.toLowerCase(), hit = !force && cache.get(key);
   pushRecent(q); $("#q").value = q; $("#searchForm").classList.add("has");
   if (matchMedia("(hover:none)").matches) $("#q").blur();
   closeSug();
-  V.q = q; V.filter = "all"; V.err = ""; location.hash = "#/search";
+  V.q = q; V.filter = "all"; V.err = ""; V.searchArtist = artCache.get(key) || null; location.hash = "#/search";
+  if (force || !artCache.has(key)) searchArtistCard(q).then(a => { if (artCache.size > 30) artCache.delete(artCache.keys().next().value); artCache.set(key, a); if (mine === tok) { V.searchArtist = a; if (!V.loading) drawView(); } });
   if (hit && Date.now() - hit.t < 6e5) { V.results = hit.r; V.loading = false; setBusy(false); return drawView(); }
   V.loading = true; setBusy(true); drawView();
   try { const r = await bridge("search", { query: q }); if (mine !== tok) return; V.results = r; V.ext = true; X.ok = true; cache.set(key, { r, t: Date.now() }); if (cache.size > 30) cache.delete(cache.keys().next().value); }

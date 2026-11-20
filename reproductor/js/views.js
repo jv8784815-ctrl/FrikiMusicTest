@@ -121,17 +121,18 @@ const start = () => `<h1>Buscar</h1>`
 const best = s => `<div class="best${P.song?.id === s.id ? " now" : ""}" tabindex="0" data-play="search:0">${pic(s.cover, 264)}
   <div><span class="lbl">Mejor resultado</span><b>${hl(s.title, V.q)}${vb(s)}</b><span class="sub">${artistLink(s.artist, s.artistId)}${s.meta ? " • " + esc(s.meta) : ""}</span></div>
   <div class="acts"><button class="ibtn${isLiked(s.id) ? " on" : ""}" data-like="${s.id}" aria-label="Me gusta">${icon("heart")}</button><span class="bplay" aria-hidden="true">${icon("play")}</span></div></div>`;
+const artistCard = () => { const a = V.searchArtist; return a ? `<div class="acard" tabindex="0" role="link" data-artist="${esc(a.name)}" data-artist-id="${esc(a.id)}"><span class="aph">${a.avatar ? pic(a.avatar, 264, 'alt=""') : ""}</span><div><span class="lbl">Artista</span><b>${esc(a.name)}</b>${a.subtitle ? `<span class="sub">${esc(a.subtitle)}</span>` : ""}</div><span class="go" aria-hidden="true">›</span></div>` : ""; };
 export function search() {
   if (V.loading) return `<h1>Buscando “${esc(V.q)}”…</h1><div class="skrows" aria-hidden="true">${`<div class="skrow"><i></i><div><i></i><i></i></div></div>`.repeat(8)}</div>`;
   if (!V.q) return start();
   const head = `<h1>Resultados para “${esc(V.q)}”</h1>`;
   if (V.err) return head + empty("No se pudo completar la búsqueda", esc(V.err), `<button class="chip fill" data-sretry>Reintentar</button>`) + extBanner();
-  if (!V.results.length) return head + empty("Sin resultados", "Revisa la ortografía o prueba con el título de la canción o el nombre del artista.");
+  if (!V.results.length) return head + artistCard() + empty("Sin resultados", "Revisa la ortografía o prueba con el título de la canción o el nombre del artista.");
   const list = shown(), nv = V.results.filter(x => x.video).length, n = { all: V.results.length, song: V.results.length - nv, video: nv };
   const bar = `<div class="sbar" role="group" aria-label="Filtrar resultados">`
     + FILTERS.map(([f, l]) => `<button class="chip${V.filter === f ? " on" : ""}" data-sf="${f}" aria-pressed="${V.filter === f}"${n[f] ? "" : " disabled"}>${l}<small>${n[f]}</small></button>`).join("")
     + `<span class="grow"></span><button class="chip fill" data-play="search:0">${icon("play", 20)}Reproducir todo</button></div>`;
-  return head + bar + best(list[0])
+  return head + artistCard() + bar + best(list[0])
     + (list.length > 1 ? `<div class="sec"><h2>Más resultados</h2><span class="muted" aria-live="polite">${list.length} en total</span></div>` + `<div class="rlist">${list.slice(1).map((s, i) => row(s, "search", i + 1, V.q)).join("")}</div>` : "");
 }
 export function artist() {
