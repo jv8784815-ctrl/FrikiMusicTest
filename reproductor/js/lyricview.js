@@ -114,7 +114,21 @@ export function lyricsView({ onSeek, onPick, onRetry } = {}) {
       dots[n].style.setProperty("--f", f.toFixed(3));
       dots[n].classList.toggle("done", f >= 1);
     }
-    row.classList.toggle("out", t >= b - reserve);
+    const out = t >= b - reserve;
+    row.classList.toggle("out", out);
+    if (!out) return;
+    const q = Math.min(1, Math.max(0, (t - (b - reserve)) / Math.max(1, reserve)));
+    const ease = v => v * v * (3 - 2 * v), cl = v => Math.min(1, Math.max(0, v));
+    for (let n = 0; n < dots.length; n++) {
+      const x = cl((q - n * .12) / .64), u = ease(cl((x - .25) / .75));
+      const st = dots[n].style;
+      st.setProperty("--s", (x < .25 ? 1 + .55 * ease(x / .25) : 1.55 - 1.4 * u).toFixed(3));
+      st.setProperty("--y", (-26 * u).toFixed(2));
+      st.setProperty("--o", (x < .25 ? 1 : 1 - u).toFixed(3));
+      st.setProperty("--bl", (4 * u).toFixed(2));
+      st.setProperty("--r", (1 + 1.5 * ease(x)).toFixed(3));
+      st.setProperty("--ro", (x <= 0 ? 0 : .9 * (1 - x) * Math.min(1, x * 10)).toFixed(3));
+    }
   }
   function frame() {
     raf = requestAnimationFrame(frame);
