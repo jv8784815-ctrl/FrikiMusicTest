@@ -16,6 +16,7 @@ import { transport, fmt, toggleFull, closeFull, updateFull, isFullOpen, openFull
 import { bindSettings } from "./settings.js";
 import { toggleMini, bindMini, setAutoMini, miniSupported } from "./mini.js";
 import { winButton } from "./download.js";
+import { openDownload } from "./dl.js";
 import { searchBarHTML, bindSearch, setBusy, closeSug } from "./search.js";
 const $ = s => document.querySelector(s), esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const routes = { home, search, artist, album, queue, likes, settings, top: topGlobal, toppais: topCountry };
@@ -146,7 +147,7 @@ function drawBar() {
   const s = P.song; if (s) { ambient(s.cover); updateSession(); }
   $("#bar").innerHTML = `<div class="meta" data-act="full">${s ? pic(s.cover, 192) : `<div class="ph"></div>`}<div><b>${s ? esc(s.title) : "Nada sonando"}</b><span class="muted">${s ? (P.loading ? "Cargando…" : esc(s.artist)) : "Busca una canción para empezar"}</span></div>
     ${s ? `<button class="ibtn${isLiked(s.id) ? " on" : ""}" data-like="${s.id}" aria-label="Me gusta">${icon("heart")}</button>` : ""}</div>`
-    + transport() + `<div class="vol">${miniSupported() ? `<button class="ibtn" data-act="mini" aria-label="Mini reproductor" title="Mini reproductor (P)">${icon("pip", 20)}</button>` : ""}${icon("vol")}<input type="range" min="0" max="100" value="${au.volume * 100}" id="vol" aria-label="Volumen"></div>`;
+    + transport() + `<div class="vol">${s ? `<button class="ibtn" data-dl="${s.id}" aria-label="Descargar" title="Descargar">${icon("download", 20)}</button>` : ""}${miniSupported() ? `<button class="ibtn" data-act="mini" aria-label="Mini reproductor" title="Mini reproductor (P)">${icon("pip", 20)}</button>` : ""}${icon("vol")}<input type="range" min="0" max="100" value="${au.volume * 100}" id="vol" aria-label="Volumen"></div>`;
   if (s) bindCoverFallback($("#bar .meta img"), s.id, s.cover);
   stopWavy.forEach(f => f()); stopWavy = [...document.querySelectorAll("#bar [data-wavy]")].map(wavy);
   updateFull();
@@ -173,13 +174,14 @@ async function runSearch(q, force) {
 $("#searchForm").addEventListener("submit", e => { e.preventDefault(); const q = $("#q").value.trim(); if (q) runSearch(q); });
 addEventListener("hashchange", () => { drawView(); ensureTop(); });
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-artist],[data-release],[data-playlist],[data-top],[data-tp],[data-play],[data-like],[data-act],button[data-accent],[data-rail],[data-focus]"); if (!t) return;
+  const t = e.target.closest("[data-artist],[data-release],[data-playlist],[data-top],[data-tp],[data-play],[data-like],[data-dl],[data-act],button[data-accent],[data-rail],[data-focus]"); if (!t) return;
   const d = t.dataset;
   if (d.artist !== undefined) { e.stopPropagation(); openArtist(d.artist, d.artistId || ""); }
   else if (d.release !== undefined) { e.stopPropagation(); openAlbum(d.release); }
   else if (d.top) { const [k, v] = d.top.split(":"); V.top[k] = v; V.top.data = null; loadTop(); drawView(); }
   else if (d.tp) { const T = V.tops[topPages[cur()]]; if (T) { T.period = d.tp; T.data = null; loadTopPage(cur()); } }
   else if (d.playlist !== undefined) { e.stopPropagation(); openAlbum(d.playlist, "playlist"); }
+  else if (d.dl !== undefined) { e.stopPropagation(); openDownload((d.dl && Object.values(lists()).flat().find(x => x?.id === d.dl)) || (d.dl && [...V.results, ...P.queue, ...S.likes, ...S.history].find(x => x.id === d.dl)) || P.song); }
   else if (d.like !== undefined) { e.stopPropagation(); const s = [...V.results, ...P.queue, ...S.likes, ...S.history].find(x => x.id === d.like); s && toggleLike(s); drawView(); drawBar(); }
   else if (d.play) {
     const [l, i] = d.play.split(":"), list = lists()[l], track = list?.[+i];

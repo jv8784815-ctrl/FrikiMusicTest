@@ -17,7 +17,7 @@ const mimeOf = f => String(f?.mime_type || "").replace(/;\s*/, "; ");
 export const chunkedSupported = f => !!(globalThis.MediaSource && f?.init_range && f.index_range && f.content_length > 0
   && /^video\/mp4/.test(mimeOf(f)) && MediaSource.isTypeSupported(mimeOf(f)));
 
-const chunkFor = url => {
+export const chunkFor = url => {
   const u = new URL(url), c = (u.searchParams.get("c") || "").toUpperCase();
   return /googlevideo\.com$/.test(u.hostname) && (c === "ANDROID_VR" || c.startsWith("TVHTML5_SIMPLY")) ? NARROW : CHUNK;
 };
@@ -44,7 +44,7 @@ async function fetchRange(url, a, b, signal) {
 }
 
 // Bytes a..b en tramos paralelos, unidos en orden
-async function fetchSpan(url, a, b, step, signal, stat) {
+export async function fetchSpan(url, a, b, step, signal, stat) {
   const parts = []; for (let p = a; p <= b; p += step) parts.push([p, Math.min(p + step - 1, b)]);
   const out = new Array(parts.length); let next = 0;
   const t0 = performance.now();

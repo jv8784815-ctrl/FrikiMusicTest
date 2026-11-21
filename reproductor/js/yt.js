@@ -509,3 +509,34 @@ export async function searchArtistCard(query) {
     return { id: a.id, name, avatar, subtitle: txt(a.subscribers) || "" };
   } catch { return null; }
 }
+
+// ---- Descargas: todos los formatos con URL que dan varios clientes de YouTube (no se elige uno para reproducir) ----
+const codecOf = m => (/codecs="([^"]+)"/.exec(m || "")?.[1] || "").split(",")[0].trim();
+async function collectFormats(yt, videoId, clients, signed) {
+  let meta = null, firstErr = null;
+  const per = await Promise.all(clients.map(async cl => {
+    try {
+      const info = await fetchInfo(yt, videoId, cl);
+      if (info.playability_status?.status !== "OK") { firstErr ??= info; return []; }
+      meta ??= info.basic_info;
+      const sd = info.streaming_data;
+      return [...(sd?.adaptive_formats ?? []), ...(sd?.formats ?? [])].filter(hasUrl).map(f => ({ f, yt }));
+    } catch (e) { console.warn(`[FrikiMusic] descarga: ${cl} falló:`, e?.message || e); return []; }
+  }));
+  const got = new Map();
+  for (const list of per) for (const x of list) if (!got.has(x.f.itag)) got.set(x.f.itag, x);
+  return { got, meta, firstErr };
+}
+export async function downloadFormats(videoId) {
+  let r = await collectFormats(await getInnertube(), videoId, CLIENTS, false);
+  if (!r.got.size && !isNative) { try { r = await collectFormats(await getSignedInnertube(), videoId, SIGNED_CLIENTS, true); } catch {} }
+  if (!r.got.size) throw r.firstErr ? whyNot(r.firstErr) : new Error("YouTube no dio formatos descargables para este contenido.");
+  const formats = [...r.got.values()].map(({ f, yt }) => ({
+    itag: f.itag, mime: f.mime_type, codec: codecOf(f.mime_type), bitrate: f.bitrate || 0,
+    size: Number(f.content_length) || 0, width: f.width || 0, height: f.height || 0, fps: f.fps || 0,
+    hasAudio: !!f.has_audio, hasVideo: !!f.has_video, drc: !!f.is_drc,
+    dub: !!(f.audio_track && f.audio_track.audio_is_default === false),
+    url: () => f.decipher(yt.session.player),
+  }));
+  return { title: r.meta?.title || "", duration: r.meta?.duration || 0, formats };
+}

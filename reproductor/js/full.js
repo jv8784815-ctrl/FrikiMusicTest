@@ -41,6 +41,7 @@ function build() {
   root.innerHTML = `<div class="vt" data-vt aria-hidden="true"></div>
   <button class="ibtn fc close" data-act="full" aria-label="Cerrar">${icon("down")}</button>
   <div class="ftr"><button class="vq" data-vq aria-haspopup="menu" hidden></button><div class="vqm" data-vqm hidden role="menu"></div>
+    <button class="ibtn fc" data-dl aria-label="Descargar" title="Descargar">${icon("download", 20)}</button>
     ${"documentPictureInPicture" in window ? `<button class="ibtn fc" data-act="mini" aria-label="Mini reproductor" title="Mini reproductor (P)">${icon("pip", 20)}</button>` : ""}
     <button class="ibtn fc" data-fs aria-label="Pantalla completa">${icon("fs", 20)}</button></div>
   <div class="fgrid">

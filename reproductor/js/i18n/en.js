@@ -1,6 +1,27 @@
 // Generado: español → en
 export default {
   exact: {
+ "Descargar": "Download",
+ "Cancelar": "Cancel",
+ "Calidad": "Quality",
+ "Solo audio": "Audio only",
+ "Buscando las calidades disponibles…": "Looking for available qualities…",
+ "YouTube no ofrece ningún vídeo descargable para este contenido. Prueba con «Solo audio».": "YouTube doesn't offer any downloadable video for this item. Try “Audio only”.",
+ "YouTube no ofrece audio descargable para este contenido.": "YouTube doesn't offer downloadable audio for this item.",
+ "El vídeo se descarga y se une con el audio aquí mismo, así que puede tardar un poco en calidades altas.": "The video is downloaded and merged with the audio right here, so high qualities can take a while.",
+ "Preparando…": "Preparing…",
+ "Descargando…": "Downloading…",
+ "Descargando vídeo…": "Downloading video…",
+ "Descargando audio…": "Downloading audio…",
+ "Uniendo vídeo y audio…": "Merging video and audio…",
+ "Guardando…": "Saving…",
+ "Descarga cancelada.": "Download cancelled.",
+ "Listo:": "Done:",
+ "YouTube no indicó el tamaño de este archivo. Prueba otra calidad.": "YouTube didn't report this file's size. Try another quality.",
+ "No se pudieron obtener las calidades.": "Couldn't get the available qualities.",
+ "No se pudo descargar. Prueba otra calidad.": "Couldn't download. Try another quality.",
+ "YouTube no dio formatos descargables para este contenido.": "YouTube returned no downloadable formats for this item.",
+ "Mejor": "Best",
  "Principal": "Main",
  "Inicio": "Home",
  "Buscar": "Search",
@@ -316,6 +337,14 @@ export default {
  "sin sesión en la app": "not signed in in the app"
 },
   patterns: [
+ [
+  "^Esta calidad pesa (.+) y no cabe en la memoria del navegador\\. Elige una menor\\.$",
+  "This quality weighs $1 and doesn't fit in the browser's memory. Pick a lower one."
+ ],
+ [
+  "^No hay memoria suficiente para (.+)\\. Elige una calidad menor\\.$",
+  "Not enough memory for $1. Pick a lower quality."
+ ],
  [
   "^(\\d+) canciones añadidas a la cola$",
   "$1 songs added to the queue"

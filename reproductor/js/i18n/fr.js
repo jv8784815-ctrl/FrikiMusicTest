@@ -1,6 +1,27 @@
 // Generado: español → fr
 export default {
   exact: {
+ "Descargar": "Télécharger",
+ "Cancelar": "Annuler",
+ "Calidad": "Qualité",
+ "Solo audio": "Audio seul",
+ "Buscando las calidades disponibles…": "Recherche des qualités disponibles…",
+ "YouTube no ofrece ningún vídeo descargable para este contenido. Prueba con «Solo audio».": "YouTube ne propose aucune vidéo téléchargeable pour ce contenu. Essayez « Audio seul ».",
+ "YouTube no ofrece audio descargable para este contenido.": "YouTube ne propose pas d'audio téléchargeable pour ce contenu.",
+ "El vídeo se descarga y se une con el audio aquí mismo, así que puede tardar un poco en calidades altas.": "La vidéo est téléchargée puis fusionnée avec l'audio ici même, donc les hautes qualités peuvent prendre un peu de temps.",
+ "Preparando…": "Préparation…",
+ "Descargando…": "Téléchargement…",
+ "Descargando vídeo…": "Téléchargement de la vidéo…",
+ "Descargando audio…": "Téléchargement de l'audio…",
+ "Uniendo vídeo y audio…": "Fusion de la vidéo et de l'audio…",
+ "Guardando…": "Enregistrement…",
+ "Descarga cancelada.": "Téléchargement annulé.",
+ "Listo:": "Terminé :",
+ "YouTube no indicó el tamaño de este archivo. Prueba otra calidad.": "YouTube n'a pas indiqué la taille de ce fichier. Essayez une autre qualité.",
+ "No se pudieron obtener las calidades.": "Impossible d'obtenir les qualités disponibles.",
+ "No se pudo descargar. Prueba otra calidad.": "Téléchargement impossible. Essayez une autre qualité.",
+ "YouTube no dio formatos descargables para este contenido.": "YouTube n'a renvoyé aucun format téléchargeable pour ce contenu.",
+ "Mejor": "Meilleure",
  "Principal": "Principal",
  "Inicio": "Accueil",
  "Buscar": "Rechercher",
@@ -316,6 +337,14 @@ export default {
  "sin sesión en la app": "non connecté dans l'app"
 },
   patterns: [
+ [
+  "^Esta calidad pesa (.+) y no cabe en la memoria del navegador\\. Elige una menor\\.$",
+  "Cette qualité pèse $1 et ne tient pas dans la mémoire du navigateur. Choisissez-en une plus basse."
+ ],
+ [
+  "^No hay memoria suficiente para (.+)\\. Elige una calidad menor\\.$",
+  "Mémoire insuficiente pour $1. Choisissez une qualité plus basse."
+ ],
  [
   "^(\\d+) canciones añadidas a la cola$",
   "$1 titres ajoutés à la file"

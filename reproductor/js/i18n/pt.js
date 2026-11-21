@@ -1,6 +1,27 @@
 // Generado: español → pt
 export default {
   exact: {
+ "Descargar": "Baixar",
+ "Cancelar": "Cancelar",
+ "Calidad": "Qualidade",
+ "Solo audio": "Só áudio",
+ "Buscando las calidades disponibles…": "Procurando as qualidades disponíveis…",
+ "YouTube no ofrece ningún vídeo descargable para este contenido. Prueba con «Solo audio».": "O YouTube não oferece nenhum vídeo para baixar deste conteúdo. Tente «Só áudio».",
+ "YouTube no ofrece audio descargable para este contenido.": "O YouTube não oferece áudio para baixar deste conteúdo.",
+ "El vídeo se descarga y se une con el audio aquí mismo, así que puede tardar un poco en calidades altas.": "O vídeo é baixado e unido ao áudio aqui mesmo, então qualidades altas podem demorar um pouco.",
+ "Preparando…": "Preparando…",
+ "Descargando…": "Baixando…",
+ "Descargando vídeo…": "Baixando vídeo…",
+ "Descargando audio…": "Baixando áudio…",
+ "Uniendo vídeo y audio…": "Unindo vídeo e áudio…",
+ "Guardando…": "Salvando…",
+ "Descarga cancelada.": "Download cancelado.",
+ "Listo:": "Pronto:",
+ "YouTube no indicó el tamaño de este archivo. Prueba otra calidad.": "O YouTube não informou o tamanho deste arquivo. Tente outra qualidade.",
+ "No se pudieron obtener las calidades.": "Não foi possível obter as qualidades disponíveis.",
+ "No se pudo descargar. Prueba otra calidad.": "Não foi possível baixar. Tente outra qualidade.",
+ "YouTube no dio formatos descargables para este contenido.": "O YouTube não retornou formatos para baixar deste conteúdo.",
+ "Mejor": "Melhor",
  "Principal": "Principal",
  "Inicio": "Início",
  "Buscar": "Buscar",
@@ -316,6 +337,14 @@ export default {
  "sin sesión en la app": "sem sessão no app"
 },
   patterns: [
+ [
+  "^Esta calidad pesa (.+) y no cabe en la memoria del navegador\\. Elige una menor\\.$",
+  "Esta qualidade pesa $1 e não cabe na memória do navegador. Escolha uma menor."
+ ],
+ [
+  "^No hay memoria suficiente para (.+)\\. Elige una calidad menor\\.$",
+  "Memória insuficiente para $1. Escolha uma qualidade menor."
+ ],
  [
   "^(\\d+) canciones añadidas a la cola$",
   "$1 músicas adicionadas à fila"
