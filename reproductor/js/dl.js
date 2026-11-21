@@ -36,7 +36,7 @@ export function buildOptions(formats) {
   }
   const videoOpts = [];
   if (aac) for (const [h, f] of byH) videoOpts.push({ id: "v" + f.itag, kind: "video", parts: [f, aac], ext: "mp4", mime: "video/mp4", h, merge: true,
-    title: `${h}p${f.fps > 30 ? f.fps : ""}`, tag: hName(h), sub: `${CODEC(f.codec)} + AAC · .mp4${/^av01/.test(f.codec) ? " · AV1" : ""}`, size: f.size && aac.size ? f.size + aac.size : 0 });
+    title: `${h}p${f.fps > 30 ? f.fps : ""}`, tag: hName(h), sub: `${CODEC(f.codec)} + AAC · .mp4${/^av01/.test(f.codec) ? " · AV1: el Reproductor de Windows necesita el códec AV1 (usa VLC)" : ""}`, size: f.size && aac.size ? f.size + aac.size : 0 });
   // formatos ya con audio (360p/720p), solo para alturas que no tengamos
   for (const f of formats) {
     if (!(f.hasVideo && f.hasAudio) || !f.height || !/^video\/mp4/.test(f.mime) || videoOpts.some(o => o.h === f.height)) continue;
@@ -105,7 +105,7 @@ function render() {
   else if (!S.opts) body = `<p class="dl-msg"><span class="dl-spin" aria-hidden="true"></span>Buscando las calidades disponibles…</p>`;
   else if (!list.length) body = `<p class="dl-msg">${S.tab === "video" ? "YouTube no ofrece ningún vídeo descargable para este contenido. Prueba con «Solo audio»." : "YouTube no ofrece audio descargable para este contenido."}</p>`;
   else body = `<div class="dl-list" role="radiogroup" aria-label="Calidad">${list.map(o => optHTML(o, sel)).join("")}</div>`
-    + (S.tab === "video" ? `<p class="dl-note">El vídeo se descarga y se une con el audio aquí mismo, así que puede tardar un poco en calidades altas.</p>` : "");
+    + (S.tab === "video" ? `<p class="dl-note">El vídeo se descarga y se une con el audio aquí mismo (MP4 estándar, compatible con el Reproductor de Windows), así que puede tardar un poco en calidades altas.</p>` : "");
   ov.querySelector(".dl-body").innerHTML = tabs + body;
   const go = $("[data-dl-go]"); go.disabled = !sel || S.busy || !list.length;
 }
